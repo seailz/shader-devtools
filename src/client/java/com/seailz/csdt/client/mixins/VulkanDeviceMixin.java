@@ -11,6 +11,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Map;
 
+/**
+ * Fixes a bug in 26.2-snapshot-1 where if Vulkan is enabled, core shaders will only reload when the entire game is restarted
+ */
 @Mixin(VulkanDevice.class)
 public abstract class VulkanDeviceMixin {
     @Shadow

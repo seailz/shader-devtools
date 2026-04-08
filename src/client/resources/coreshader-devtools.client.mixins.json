@@ -4,6 +4,9 @@
   "package": "com.seailz.csdt.client.mixins",
   "compatibilityLevel": "JAVA_25",
   "client": [
+    "GameRendererAccess",
+    "GameRendererMixin",
+    "ShaderManagerMixin",
     "VulkanDeviceMixin"
   ],
   "injectors": {

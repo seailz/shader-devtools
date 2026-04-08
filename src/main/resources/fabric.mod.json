@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "coreshader-devtools",
+  "id": "shader-devtools",
   "version": "${version}",
-  "name": "coreshader-devtools",
-  "description": "Tools to make core shader development slightly easier",
+  "name": "ShaderDevTools",
+  "description": "Tools to make vanilla shader development slightly easier",
   "authors": [],
   "contact": {},
   "license": "MIT",

@@ -1,0 +1,18 @@
+{
+  "key.category.coreshader-devtools.main": "Shader DevTools",
+  "key.coreshader-devtools.reload_core_shaders": "Reload Core Shaders",
+  "key.coreshader-devtools.shader_dev_tools_menu": "Open Shader DevTools",
+  "screen.coreshader-devtools.shader_dev_tools": "Shader DevTools",
+  "screen.coreshader-devtools.shader_inventory": "Shader List",
+  "button.coreshader-devtools.globals_overrides": "Override Globals",
+  "button.coreshader-devtools.shader_inventory": "Shader List",
+  "button.coreshader-devtools.reload_core": "Reload Core",
+  "button.coreshader-devtools.reload_post": "Reload Post",
+  "button.coreshader-devtools.reload_all": "Reload All",
+  "button.coreshader-devtools.reset_overrides": "Reset Overrides",
+  "button.coreshader-devtools.core_shaders": "Core",
+  "button.coreshader-devtools.post_shaders": "Post",
+  "button.coreshader-devtools.previous_page": "Previous",
+  "button.coreshader-devtools.next_page": "Next",
+  "label.coreshader-devtools.shader_inventory_hint": "Yellow entries are overridden by a higher-priority pack."
+}
