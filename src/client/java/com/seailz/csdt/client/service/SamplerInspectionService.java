@@ -165,8 +165,8 @@ public final class SamplerInspectionService {
         int safeY = Math.clamp(y, 0, Math.max(0, textureHeight - 1));
         int width = Math.clamp(requestedWidth, 1, textureWidth - safeX);
         int height = Math.clamp(requestedHeight, 1, textureHeight - safeY);
-        int pixelSize = Math.max(1, texture.getFormat().pixelSize());
-        int byteCount = Math.multiplyExact(Math.multiplyExact(width, height), pixelSize);
+        int blockSize = Math.max(1, texture.getFormat().blockSize());
+        int byteCount = Math.multiplyExact(Math.multiplyExact(width, height), blockSize);
         GpuDevice device = RenderSystem.tryGetDevice();
         if (device == null) {
             return ReadbackResult.failure("GPU device is unavailable");
@@ -195,7 +195,7 @@ public final class SamplerInspectionService {
                 data.position(0);
                 data.get(bytes, 0, Math.min(bytes.length, data.remaining()));
             }
-            return ReadbackResult.success(record.snapshot(System.nanoTime()), safeX, safeY, width, height, pixelSize, bytes);
+            return ReadbackResult.success(record.snapshot(System.nanoTime()), safeX, safeY, width, height, blockSize, bytes);
         } catch (RuntimeException exception) {
             LOGGER.error("Failed to read sampler texture", exception);
             return ReadbackResult.failure(exception.toString());
@@ -303,7 +303,7 @@ public final class SamplerInspectionService {
                     this.baseMipLevel,
                     this.viewMipLevels,
                     this.format.toString(),
-                    this.format.pixelSize(),
+                    this.format.blockSize(),
                     this.usage,
                     (this.usage & GpuTexture.USAGE_COPY_SRC) != 0,
                     this.samplerState,
@@ -332,7 +332,7 @@ public final class SamplerInspectionService {
             int baseMipLevel,
             int viewMipLevels,
             String format,
-            int pixelSize,
+            int blockSize,
             int usage,
             boolean copySrc,
             String samplerState,
@@ -354,18 +354,18 @@ public final class SamplerInspectionService {
             return new ReadbackResult(false, message, List.of(message), message);
         }
 
-        private static ReadbackResult success(SamplerBindingSnapshot binding, int x, int y, int width, int height, int pixelSize, byte[] bytes) {
+        private static ReadbackResult success(SamplerBindingSnapshot binding, int x, int y, int width, int height, int blockSize, byte[] bytes) {
             List<String> lines = new ArrayList<>();
             StringBuilder dump = new StringBuilder();
             appendLine(lines, dump, "Sampler: " + binding.shortTitle());
             appendLine(lines, dump, "Pipeline: " + binding.pipelineLocation());
             appendLine(lines, dump, "Texture: %s %dx%d %s usage=0x%X".formatted(binding.textureLabel(), binding.width(), binding.height(), binding.format(), binding.usage()));
-            appendLine(lines, dump, "Region: x=%d y=%d w=%d h=%d pixelSize=%d".formatted(x, y, width, height, pixelSize));
+            appendLine(lines, dump, "Region: x=%d y=%d w=%d h=%d blockSize=%d".formatted(x, y, width, height, blockSize));
             for (int row = 0; row < height; row++) {
                 StringBuilder rowBuilder = new StringBuilder("y=%02d:".formatted(y + row));
                 for (int col = 0; col < width; col++) {
-                    int offset = (row * width + col) * pixelSize;
-                    rowBuilder.append(' ').append(formatPixel(bytes, offset, pixelSize));
+                    int offset = (row * width + col) * blockSize;
+                    rowBuilder.append(' ').append(formatPixel(bytes, offset, blockSize));
                 }
                 appendLine(lines, dump, rowBuilder.toString());
             }
@@ -377,17 +377,17 @@ public final class SamplerInspectionService {
             dump.append(line).append('\n');
         }
 
-        private static String formatPixel(byte[] bytes, int offset, int pixelSize) {
+        private static String formatPixel(byte[] bytes, int offset, int blockSize) {
             StringBuilder raw = new StringBuilder();
             raw.append('[');
-            for (int i = 0; i < pixelSize; i++) {
+            for (int i = 0; i < blockSize; i++) {
                 if (i > 0) {
                     raw.append(',');
                 }
                 raw.append(Byte.toUnsignedInt(bytes[offset + i]));
             }
             raw.append(']');
-            if (pixelSize == 4) {
+            if (blockSize == 4) {
                 return "#%02X%02X%02X%02X%s".formatted(
                         Byte.toUnsignedInt(bytes[offset]),
                         Byte.toUnsignedInt(bytes[offset + 1]),

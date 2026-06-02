@@ -312,7 +312,7 @@ public final class SamplerInspectorScreen extends Screen {
         y = text(guiGraphics, entry.shortTitle(), infoLeft, y, infoWidth, 0xFFFFD166);
         y = text(guiGraphics, "Pipeline: " + entry.pipelineLocation(), infoLeft, y, infoWidth, 0xFFE6EEF7);
         y = text(guiGraphics, "Shaders: " + entry.vertexShader() + " -> " + entry.fragmentShader(), infoLeft, y, infoWidth, 0xFFB8C7D9);
-        y = text(guiGraphics, "Texture: %s %dx%d %s pixel=%d usage=0x%X".formatted(entry.textureLabel(), entry.width(), entry.height(), entry.format(), entry.pixelSize(), entry.usage()), infoLeft, y, infoWidth, 0xFFE6EEF7);
+        y = text(guiGraphics, "Texture: %s %dx%d %s block=%d usage=0x%X".formatted(entry.textureLabel(), entry.width(), entry.height(), entry.format(), entry.blockSize(), entry.usage()), infoLeft, y, infoWidth, 0xFFE6EEF7);
         y = text(guiGraphics, "View: mip=%d levels=%d depth/layers=%d".formatted(entry.baseMipLevel(), entry.viewMipLevels(), entry.depthOrLayers()), infoLeft, y, infoWidth, 0xFFB8C7D9);
         y = text(guiGraphics, "Sampler: " + entry.samplerState(), infoLeft, y, infoWidth, 0xFFB8C7D9);
         y = text(guiGraphics, "State: " + (entry.textureClosed() ? "closed" : "live") + " | last bind " + entry.ageMillis() + " ms ago" + (entry.copySrc() ? "" : " | no copy-src"), infoLeft, y, infoWidth, entry.copySrc() ? 0xFFB8C7D9 : 0xFFF4A261);
