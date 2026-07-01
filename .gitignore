@@ -3,3 +3,16 @@
 /build/
 /build/classes/java/client/
 .idea
+
+# Local runtime/cache output
+/.lwjgl/
+/.tools/
+/assets/
+/state/
+/tmp/
+
+/run/*
+!/run/resourcepacks/
+/run/resourcepacks/*
+!/run/resourcepacks/testpack/
+!/run/resourcepacks/testpack/**

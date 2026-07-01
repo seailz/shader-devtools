@@ -40,7 +40,7 @@ public final class PipelineInventoryService {
                 [State]
                 Cull: %s
                 Wants Depth Texture: %s
-                Color Target: %s
+                Color Targets: %s
                 Depth/Stencil: %s
                 """.formatted(
                 shortId(pipeline.getVertexShader()),
@@ -53,7 +53,7 @@ public final class PipelineInventoryService {
                 pipeline.getShaderDefines(),
                 pipeline.isCull() ? "Enabled" : "Disabled",
                 pipeline.wantsDepthTexture() ? "Yes" : "No",
-                pipeline.getColorTargetState(),
+                Arrays.toString(pipeline.getColorTargetStates()),
                 pipeline.getDepthStencilState() == null ? "<none>" : pipeline.getDepthStencilState().toString()
         ).trim();
     }

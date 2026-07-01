@@ -1,5 +1,6 @@
 package com.seailz.csdt.client.service;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackResources;
@@ -9,6 +10,7 @@ import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -19,8 +21,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class ShaderInventoryService {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     private ShaderInventoryService() {
     }
@@ -198,15 +203,30 @@ public final class ShaderInventoryService {
         PackRepository repository = Minecraft.getInstance().getResourcePackRepository();
         OverrideTarget preferred = null;
         for (Pack pack : repository.getSelectedPacks()) {
-            try (PackResources resources = pack.open()) {
-                Path root = resolvePackRoot(resources);
-                if (root != null && Files.isDirectory(root) && Files.isWritable(root)) {
-                    preferred = new OverrideTarget(pack.getId(), root);
-                }
-            } catch (Exception ignored) {
+            OverrideTarget target = findWritableOverrideTarget(pack);
+            if (target != null) {
+                preferred = target;
             }
         }
         return preferred;
+    }
+
+    private static @Nullable OverrideTarget findWritableOverrideTarget(Pack pack) {
+        try (Stream<PackResources> resources = pack.open()) {
+            OverrideTarget preferred = null;
+            for (PackResources resource : resources.toList()) {
+                try (resource) {
+                    Path root = resolvePackRoot(resource);
+                    if (root != null && Files.isDirectory(root) && Files.isWritable(root)) {
+                        preferred = new OverrideTarget(pack.getId(), root);
+                    }
+                }
+            }
+            return preferred;
+        } catch (Exception exception) {
+            LOGGER.warn("Failed to inspect selected resource pack {} for writable shader overrides", pack.getId(), exception);
+            return null;
+        }
     }
 
     public enum ShaderCategory {

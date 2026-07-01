@@ -10,6 +10,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public final class PipelineDetailScreen extends Screen {
@@ -172,7 +173,7 @@ public final class PipelineDetailScreen extends Screen {
         addList("Defines", List.of(String.valueOf(pipeline.getShaderDefines())));
 
         addHeader("Targets");
-        addDetail("Color Target", String.valueOf(pipeline.getColorTargetState()));
+        addList("Color Targets", Arrays.stream(pipeline.getColorTargetStates()).map(String::valueOf).toList());
         addDetail("Depth/Stencil", pipeline.getDepthStencilState() == null ? "<none>" : String.valueOf(pipeline.getDepthStencilState()));
     }
 
