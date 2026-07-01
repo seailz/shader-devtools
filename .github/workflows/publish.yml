@@ -59,7 +59,7 @@ jobs:
           echo "Publishing jar: $JAR"
 
       - name: Publish to Modrinth
-        uses: cloudnode-pro/modrinth-publish@v2
+        uses: cloudnode-pro/modrinth-publish@150bec632db186f87c686435b29c55e7543107ea
         with:
           token: ${{ secrets.MODRINTH_KEY }}
           project: vRLMGNBB
