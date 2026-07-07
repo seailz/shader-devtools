@@ -6,7 +6,6 @@ import com.seailz.csdt.client.service.ForcedPostEffectService;
 import com.seailz.csdt.client.service.McpControlServerService;
 import com.seailz.csdt.client.service.ShaderReloadService;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenKeyboardEvents;
@@ -40,18 +39,6 @@ public class CoreShaderDevToolsClient implements ClientModInitializer {
                 category
         ));
 
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (reloadCoreShadersKey.consumeClick()) {
-                ShaderReloadService.reloadCoreShadersOnly();
-            }
-
-            while (openShaderDevToolsMenuKey.consumeClick()) {
-                openShaderDevToolsMenu(client, client.gui.screen());
-            }
-
-            ForcedPostEffectService.applyForcedPostEffect();
-        });
-
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) ->
                 ScreenKeyboardEvents.allowKeyPress(screen).register((currentScreen, keyEvent) -> {
                     if (client.level == null
@@ -64,6 +51,18 @@ public class CoreShaderDevToolsClient implements ClientModInitializer {
                     return true;
                 })
         );
+    }
+
+    public static void onEndClientTick(Minecraft client) {
+        while (reloadCoreShadersKey.consumeClick()) {
+            ShaderReloadService.reloadCoreShadersOnly();
+        }
+
+        while (openShaderDevToolsMenuKey.consumeClick()) {
+            openShaderDevToolsMenu(client, client.gui.screen());
+        }
+
+        ForcedPostEffectService.applyForcedPostEffect();
     }
 
     private static void openShaderDevToolsMenu(Minecraft client, Screen parent) {

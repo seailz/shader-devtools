@@ -41,7 +41,6 @@ dependencies {
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
     implementation include("net.fabricmc.fabric-api:fabric-api-base:${project.fabric_api_base_version}")
-    implementation include("net.fabricmc.fabric-api:fabric-lifecycle-events-v1:${project.fabric_lifecycle_events_version}")
     implementation include("net.fabricmc.fabric-api:fabric-key-mapping-api-v1:${project.fabric_key_mapping_version}")
     implementation include("net.fabricmc.fabric-api:fabric-screen-api-v1:${project.fabric_screen_api_version}")
     compileOnly("org.projectlombok:lombok:1.18.44")

@@ -13,6 +13,7 @@
     "GlCommandEncoderMixin",
     "GlslCompilerMixin",
     "GpuDeviceMixin",
+    "MinecraftClientMixin",
     "RenderPassMixin",
     "ShaderManagerDebugMixin",
     "ShaderManagerMixin",
