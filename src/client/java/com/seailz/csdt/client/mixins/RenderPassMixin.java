@@ -1,6 +1,6 @@
 package com.seailz.csdt.client.mixins;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.pipeline.CompiledRenderPipeline;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.textures.GpuSampler;
 import com.mojang.blaze3d.textures.GpuTextureView;
@@ -14,8 +14,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class RenderPassMixin {
 
     @Inject(method = "setPipeline", at = @At("HEAD"))
-    private void csdt$rememberSamplerPipeline(RenderPipeline pipeline, CallbackInfo ci) {
-        SamplerInspectionService.rememberPipeline((RenderPass) (Object) this, pipeline);
+    private void csdt$rememberSamplerPipeline(CompiledRenderPipeline pipeline, CallbackInfo ci) {
+        SamplerInspectionService.rememberPipeline((RenderPass) (Object) this, pipeline.info());
     }
 
     @Inject(method = "bindTexture", at = @At("HEAD"))

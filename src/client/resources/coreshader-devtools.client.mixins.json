@@ -19,7 +19,6 @@
     "ShaderManagerMixin",
     "VulkanBindGroupLayoutMixin",
     "VulkanConstMixin",
-    "VulkanDeviceMixin",
     "VulkanRenderPassMixin",
     "VulkanRenderPassTextureBindingAccessor"
   ],
