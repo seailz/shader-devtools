@@ -1,6 +1,6 @@
 package com.seailz.csdt.client.mixins;
 
-import com.mojang.blaze3d.vulkan.VulkanConst;
+import com.mojang.renderpearl.backend.vulkan.VulkanConst;
 import com.seailz.csdt.client.service.ShaderDebugRuntimeService;
 import org.lwjgl.vulkan.VK12;
 import org.spongepowered.asm.mixin.Mixin;

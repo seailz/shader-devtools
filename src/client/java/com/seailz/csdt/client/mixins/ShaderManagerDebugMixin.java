@@ -2,7 +2,7 @@ package com.seailz.csdt.client.mixins;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.preprocessor.GlslPreprocessor;
-import com.mojang.blaze3d.shaders.ShaderType;
+import com.mojang.renderpearl.api.pipeline.ShaderType;
 import com.mojang.logging.LogUtils;
 import com.seailz.csdt.client.service.ShaderDebugSourceService;
 import net.minecraft.client.renderer.ShaderManager;

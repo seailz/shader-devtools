@@ -1,8 +1,8 @@
 package com.seailz.csdt.client.mixins;
 
-import com.mojang.blaze3d.vulkan.VulkanBindGroupLayout;
-import com.mojang.blaze3d.vulkan.VulkanDevice;
-import com.mojang.blaze3d.vulkan.VulkanUtils;
+import com.mojang.renderpearl.backend.vulkan.VulkanBindGroupLayout;
+import com.mojang.renderpearl.backend.vulkan.VulkanDevice;
+import com.mojang.renderpearl.backend.vulkan.VulkanUtils;
 import com.seailz.csdt.client.service.ShaderDebugSourceService;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.KHRPushDescriptor;

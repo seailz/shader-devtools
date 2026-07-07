@@ -27,8 +27,10 @@ public final class ShaderDebugInfoService {
             lines.add("Rendered sections: " + safeValue(() -> Integer.toString(minecraft.levelRenderer.visibleSections().size())));
             lines.add("All sections ready: " + safeValue(() -> yesNo(minecraft.levelRenderer.hasRenderedAllSections())));
             lines.add("Active post effect: " + safeValue(() -> {
-                Identifier postEffect = minecraft.gameRenderer.currentPostEffect();
-                return postEffect == null ? "None" : postEffect.toString();
+                List<Identifier> postEffects = minecraft.gameRenderer.getAppliedPostEffects();
+                return postEffects.isEmpty()
+                        ? "None"
+                        : postEffects.stream().map(Identifier::toString).collect(java.util.stream.Collectors.joining(", "));
             }));
 
             lines.add("");

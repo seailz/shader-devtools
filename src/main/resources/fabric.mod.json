@@ -23,7 +23,10 @@
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",
-    "fabric-api": "*",
+    "fabric-api-base": "*",
+    "fabric-lifecycle-events-v1": "*",
+    "fabric-key-mapping-api-v1": "*",
+    "fabric-screen-api-v1": "*",
     "minecraft": "${minecraft_depends}"
   }
 }

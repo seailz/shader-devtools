@@ -1,11 +1,11 @@
 package com.seailz.csdt.client.mixins;
 
-import com.mojang.blaze3d.vulkan.VulkanGpuSampler;
-import com.mojang.blaze3d.vulkan.VulkanGpuTextureView;
+import com.mojang.renderpearl.backend.vulkan.VulkanGpuSampler;
+import com.mojang.renderpearl.backend.vulkan.VulkanGpuTextureView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(targets = "com.mojang.blaze3d.vulkan.VulkanRenderPass$TextureViewAndSampler")
+@Mixin(targets = "com.mojang.renderpearl.backend.vulkan.VulkanRenderPass$TextureViewAndSampler")
 public interface VulkanRenderPassTextureBindingAccessor {
 
     @Accessor("view")

@@ -1,7 +1,7 @@
 package com.seailz.csdt.client.service;
 
-import com.seailz.csdt.client.mixins.GameRendererAccess;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 
@@ -18,7 +18,7 @@ public final class ForcedPostEffectService {
         Identifier postEffectId = POST_EFFECT_ID_CONVERTER.fileToId(resourceId);
         if (postEffectId.equals(forcedPostEffectId)) {
             forcedPostEffectId = null;
-            Minecraft.getInstance().gameRenderer.clearPostEffect();
+            removeRequestedPostEffect(Minecraft.getInstance().gameRenderer, postEffectId);
             ClientToastService.showInfo("Post effect released", postEffectId.toString());
             return;
         }
@@ -43,14 +43,30 @@ public final class ForcedPostEffectService {
             return;
         }
 
-        ((GameRendererAccess) minecraft.gameRenderer).csdt$setPostEffect(forcedPostEffectId);
+        appendForcedPostEffect(minecraft.gameRenderer);
+    }
+
+    public static void appendForcedPostEffect(GameRenderer gameRenderer) {
+        if (forcedPostEffectId == null || gameRenderer == null) {
+            return;
+        }
+        if (!gameRenderer.getRequestedPostEffects().contains(forcedPostEffectId)) {
+            gameRenderer.getRequestedPostEffects().add(forcedPostEffectId);
+        }
     }
 
     public static void clearForcedPostEffect() {
+        Identifier postEffectId = forcedPostEffectId;
         forcedPostEffectId = null;
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.gameRenderer != null) {
-            minecraft.gameRenderer.clearPostEffect();
+        if (postEffectId != null && minecraft.gameRenderer != null) {
+            removeRequestedPostEffect(minecraft.gameRenderer, postEffectId);
+        }
+    }
+
+    private static void removeRequestedPostEffect(GameRenderer gameRenderer, Identifier postEffectId) {
+        if (gameRenderer != null && postEffectId != null) {
+            gameRenderer.getRequestedPostEffects().removeIf(postEffectId::equals);
         }
     }
 }

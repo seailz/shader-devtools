@@ -1,6 +1,6 @@
 package com.seailz.csdt.client.mixins;
 
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.seailz.csdt.client.service.UniformInspectorService;
 import net.minecraft.client.renderer.DynamicUniformStorage;
 import org.spongepowered.asm.mixin.Final;

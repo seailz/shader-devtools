@@ -1,6 +1,7 @@
 package com.seailz.csdt.client.mixins;
 
 import com.seailz.csdt.client.service.GlobalsUniformOverrideService;
+import com.seailz.csdt.client.service.ForcedPostEffectService;
 import com.seailz.csdt.client.service.ShaderDebugRuntimeService;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.GameRenderer;
@@ -61,5 +62,10 @@ public abstract class GameRendererMixin {
     @Inject(method = "render", at = @At("TAIL"))
     private void csdt$pollShaderDebugOutput(DeltaTracker deltaTracker, boolean advanceGameTime, CallbackInfo ci) {
         ShaderDebugRuntimeService.pollAndLogChanges();
+    }
+
+    @Inject(method = "update", at = @At("TAIL"))
+    private void csdt$appendForcedPostEffect(DeltaTracker deltaTracker, CallbackInfo ci) {
+        ForcedPostEffectService.appendForcedPostEffect((GameRenderer) (Object) this);
     }
 }

@@ -1,6 +1,6 @@
 package com.seailz.csdt.client.screen;
 
-import com.mojang.blaze3d.pipeline.BindGroupLayout;
+import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
 import com.seailz.csdt.client.service.ClientToastService;
 import com.seailz.csdt.client.service.PipelineInventoryService;
 import com.seailz.csdt.client.service.ShaderInventoryService;

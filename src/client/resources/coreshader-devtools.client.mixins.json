@@ -7,7 +7,6 @@
     "CommandEncoderMixin",
     "DynamicUniformStorageMixin",
     "FogRendererMixin",
-    "GameRendererAccess",
     "GameRendererMixin",
     "GlRenderPassMixin",
     "GlBufferAccessor",

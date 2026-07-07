@@ -1,10 +1,10 @@
 package com.seailz.csdt.client.mixins;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.vulkan.VulkanBindGroupLayout;
-import com.mojang.blaze3d.vulkan.VulkanDevice;
-import com.mojang.blaze3d.vulkan.glsl.GlslCompiler;
-import com.mojang.blaze3d.vulkan.glsl.IntermediaryShaderModule;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.backend.vulkan.VulkanBindGroupLayout;
+import com.mojang.renderpearl.backend.vulkan.VulkanDevice;
+import com.mojang.renderpearl.backend.vulkan.glsl.GlslCompiler;
+import com.mojang.renderpearl.backend.vulkan.glsl.IntermediaryShaderModule;
 import com.seailz.csdt.client.service.ShaderDebugSourceService;
 import org.lwjgl.vulkan.VK12;
 import org.spongepowered.asm.mixin.Mixin;

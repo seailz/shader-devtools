@@ -1,18 +1,18 @@
 package com.seailz.csdt.client.mixins;
 
-import com.mojang.blaze3d.buffers.GpuBuffer;
-import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import com.mojang.blaze3d.pipeline.BindGroupLayout;
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.shaders.UniformType;
-import com.mojang.blaze3d.vulkan.VulkanBindGroupLayout;
-import com.mojang.blaze3d.vulkan.VulkanConst;
-import com.mojang.blaze3d.vulkan.VulkanCommandEncoder;
-import com.mojang.blaze3d.vulkan.VulkanDevice;
-import com.mojang.blaze3d.vulkan.VulkanGpuBuffer;
-import com.mojang.blaze3d.vulkan.VulkanRenderPass;
-import com.mojang.blaze3d.vulkan.VulkanRenderPipeline;
-import com.mojang.blaze3d.vulkan.VulkanUtils;
+import com.mojang.renderpearl.api.buffers.GpuBuffer;
+import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.UniformType;
+import com.mojang.renderpearl.backend.vulkan.VulkanBindGroupLayout;
+import com.mojang.renderpearl.backend.vulkan.VulkanConst;
+import com.mojang.renderpearl.backend.vulkan.VulkanCommandEncoder;
+import com.mojang.renderpearl.backend.vulkan.VulkanDevice;
+import com.mojang.renderpearl.backend.vulkan.VulkanGpuBuffer;
+import com.mojang.renderpearl.backend.vulkan.VulkanRenderPass;
+import com.mojang.renderpearl.backend.vulkan.VulkanRenderPipeline;
+import com.mojang.renderpearl.backend.vulkan.VulkanUtils;
 import com.seailz.csdt.client.service.ShaderDebugRuntimeService;
 import com.seailz.csdt.client.service.ShaderDebugSourceService;
 import com.seailz.csdt.client.service.UniformInspectorService;
@@ -63,12 +63,12 @@ public abstract class VulkanRenderPassMixin {
     @Final
     private VkCommandBuffer commandBuffer;
 
-    @Inject(method = "setUniform(Ljava/lang/String;Lcom/mojang/blaze3d/buffers/GpuBuffer;)V", at = @At("TAIL"))
+    @Inject(method = "setUniform(Ljava/lang/String;Lcom/mojang/renderpearl/api/buffers/GpuBuffer;)V", at = @At("TAIL"))
     private void csdt$recordUniformInspectorBuffer(String name, GpuBuffer buffer, CallbackInfo ci) {
         UniformInspectorService.recordUniformBinding("Vulkan", this.pipeline == null ? null : this.pipeline.info(), name, buffer);
     }
 
-    @Inject(method = "setUniform(Ljava/lang/String;Lcom/mojang/blaze3d/buffers/GpuBufferSlice;)V", at = @At("TAIL"))
+    @Inject(method = "setUniform(Ljava/lang/String;Lcom/mojang/renderpearl/api/buffers/GpuBufferSlice;)V", at = @At("TAIL"))
     private void csdt$recordUniformInspectorSlice(String name, GpuBufferSlice slice, CallbackInfo ci) {
         UniformInspectorService.recordUniformBinding("Vulkan", this.pipeline == null ? null : this.pipeline.info(), name, slice);
     }
