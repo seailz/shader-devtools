@@ -6,7 +6,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,25 +79,25 @@ public final class LogViewerScreen extends Screen {
     @Override
     public boolean keyPressed(KeyEvent event) {
         switch (event.key()) {
-            case GLFW.GLFW_KEY_END -> {
+            case InputConstants.KEY_END -> {
                 this.followTail = true;
                 this.followButton.setMessage(followLabel());
                 this.scrollRows = maxScrollRows();
                 return true;
             }
-            case GLFW.GLFW_KEY_HOME -> {
+            case InputConstants.KEY_HOME -> {
                 this.followTail = false;
                 this.followButton.setMessage(followLabel());
                 this.scrollRows = 0;
                 return true;
             }
-            case GLFW.GLFW_KEY_PAGE_DOWN -> {
+            case InputConstants.KEY_PAGEDOWN -> {
                 this.followTail = false;
                 this.followButton.setMessage(followLabel());
                 this.scrollRows = Math.clamp(this.scrollRows + visibleRowCount(), 0, maxScrollRows());
                 return true;
             }
-            case GLFW.GLFW_KEY_PAGE_UP -> {
+            case InputConstants.KEY_PAGEUP -> {
                 this.followTail = false;
                 this.followButton.setMessage(followLabel());
                 this.scrollRows = Math.clamp(this.scrollRows - visibleRowCount(), 0, maxScrollRows());

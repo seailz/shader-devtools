@@ -5,9 +5,9 @@ import com.mojang.renderpearl.api.buffers.GpuBuffer;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.commands.GpuFence;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.ShaderType;
 import com.mojang.renderpearl.api.commands.CommandEncoder;
 import com.mojang.renderpearl.api.device.GpuDevice;
-import com.mojang.renderpearl.api.commands.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.renderpearl.api.textures.AddressMode;
 import com.mojang.renderpearl.api.textures.FilterMode;
@@ -22,7 +22,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.IdentityHashMap;
+import java.util.WeakHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -34,9 +34,13 @@ public final class SamplerInspectionService {
 
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int MAX_BINDINGS = 160;
-    private static final int READBACK_TIMEOUT_MILLIS = 250;
+    // GpuFence.awaitCompletion forwards this value directly to Vulkan's
+    // vkWaitSemaphores timeout, whose unit is nanoseconds. The old value 250
+    // was therefore 250 ns, not 250 ms, and caused spurious readback errors.
+    private static final long READBACK_TIMEOUT_NANOS =
+            Duration.ofSeconds(1).toNanos();
 
-    private static final IdentityHashMap<RenderPass, PipelineContext> PIPELINES = new IdentityHashMap<>();
+    private static final WeakHashMap<Object, PipelineContext> PIPELINES = new WeakHashMap<>();
     private static final LinkedHashMap<String, BindingRecord> BINDINGS = new LinkedHashMap<>();
     private static long sequence;
     private static GpuSampler previewSampler;
@@ -44,24 +48,24 @@ public final class SamplerInspectionService {
     private SamplerInspectionService() {
     }
 
-    public static synchronized void rememberPipeline(RenderPass pass, RenderPipeline pipeline) {
+    public static synchronized void rememberPipeline(Object pass, RenderPipeline pipeline) {
         if (pass == null || pipeline == null) {
             return;
         }
         PIPELINES.put(pass, new PipelineContext(
                 shortId(pipeline.getLocation()),
-                shortId(pipeline.getVertexShader()),
-                shortId(pipeline.getFragmentShader())
+                shortId(pipeline.getShaders().get(ShaderType.VERTEX)),
+                shortId(pipeline.getShaders().get(ShaderType.FRAGMENT))
         ));
     }
 
-    public static synchronized void forgetRenderPass(RenderPass pass) {
+    public static synchronized void forgetRenderPass(Object pass) {
         if (pass != null) {
             PIPELINES.remove(pass);
         }
     }
 
-    public static synchronized void captureBinding(RenderPass pass, String samplerName, GpuTextureView view, GpuSampler sampler) {
+    public static synchronized void captureBinding(Object pass, String samplerName, GpuTextureView view, GpuSampler sampler) {
         try {
             if (samplerName == null || view == null) {
                 return;
@@ -184,7 +188,7 @@ public final class SamplerInspectionService {
             }, mip, safeX, safeY, width, height);
             try (GpuFence fence = encoder.createFence()) {
                 encoder.submit();
-                if (!fence.awaitCompletion(READBACK_TIMEOUT_MILLIS)) {
+                if (!fence.awaitCompletion(READBACK_TIMEOUT_NANOS)) {
                     return ReadbackResult.failure("Timed out waiting for GPU readback");
                 }
             }

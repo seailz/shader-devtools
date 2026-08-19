@@ -2,7 +2,7 @@ package com.seailz.csdt.client.mixins;
 
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.seailz.csdt.client.service.UniformInspectorService;
-import net.minecraft.client.renderer.DynamicUniformStorage;
+import net.minecraft.client.renderer.DynamicGpuDataStorage;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-@Mixin(DynamicUniformStorage.class)
+@Mixin(DynamicGpuDataStorage.class)
 public abstract class DynamicUniformStorageMixin {
 
     private static final ThreadLocal<ByteBuffer> CSDT_SCRATCH_BUFFER = ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(0));
@@ -22,9 +22,12 @@ public abstract class DynamicUniformStorageMixin {
     @Final
     private int blockSize;
 
-    @Inject(method = "writeUniform", at = @At("RETURN"))
+    @Inject(
+            method = "writeData(Lnet/minecraft/client/renderer/DynamicGpuDataStorage$DynamicGpuData;)Lcom/mojang/renderpearl/api/buffers/GpuBufferSlice;",
+            at = @At("RETURN")
+    )
     private void csdt$recordUniformInspectorDynamicWrite(
-            DynamicUniformStorage.DynamicUniform uniform,
+            DynamicGpuDataStorage.DynamicGpuData uniform,
             CallbackInfoReturnable<GpuBufferSlice> cir
     ) {
         GpuBufferSlice slice = cir.getReturnValue();

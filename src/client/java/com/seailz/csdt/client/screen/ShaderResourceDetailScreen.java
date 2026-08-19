@@ -1,5 +1,7 @@
 package com.seailz.csdt.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
+
 import com.seailz.csdt.client.service.ClientToastService;
 import com.seailz.csdt.client.service.ForcedPostEffectService;
 import com.seailz.csdt.client.service.GlslSyntaxHighlightService;
@@ -523,7 +525,7 @@ public final class ShaderResourceDetailScreen extends Screen {
 
     private boolean isMutationKey(KeyEvent event) {
         return switch (event.key()) {
-            case 259, 261, 257 -> true;
+            case InputConstants.KEY_BACKSPACE, InputConstants.KEY_DELETE, InputConstants.KEY_RETURN -> true;
             default -> !event.hasControlDown() && !event.hasAltDown() && event.key() >= 32;
         };
     }

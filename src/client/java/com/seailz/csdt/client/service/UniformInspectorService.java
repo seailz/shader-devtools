@@ -4,6 +4,7 @@ import com.mojang.renderpearl.api.buffers.GpuBuffer;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.ShaderType;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
@@ -80,8 +81,8 @@ public final class UniformInspectorService {
                 name,
                 backend,
                 pipelineLocation,
-                pipeline == null ? "<unknown>" : shortId(pipeline.getVertexShader()),
-                pipeline == null ? "<unknown>" : shortId(pipeline.getFragmentShader()),
+                pipeline == null ? "<unknown>" : shortId(pipeline.getShaders().get(ShaderType.VERTEX)),
+                pipeline == null ? "<unknown>" : shortId(pipeline.getShaders().get(ShaderType.FRAGMENT)),
                 metadata.type(),
                 metadata.gpuFormat(),
                 slice.offset(),

@@ -23,7 +23,7 @@ public abstract class GameRendererMixin {
             method = "render",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/GlobalSettingsUniform;update(IIDJLnet/minecraft/client/DeltaTracker;ILnet/minecraft/world/phys/Vec3;Z)V"
+                    target = "Lnet/minecraft/client/renderer/GlobalSettingsUniform;update(IIDJFILnet/minecraft/world/phys/Vec3;Z)V"
             )
     )
     private void csdt$applyGlobalsOverrides(
@@ -32,7 +32,7 @@ public abstract class GameRendererMixin {
             int height,
             double glintAlpha,
             long gameTime,
-            DeltaTracker deltaTracker,
+            float gameTimeDeltaPartialTick,
             int menuBlurRadius,
             Vec3 cameraPos,
             boolean useRgss
@@ -42,7 +42,7 @@ public abstract class GameRendererMixin {
                 height,
                 glintAlpha,
                 gameTime,
-                deltaTracker,
+                gameTimeDeltaPartialTick,
                 menuBlurRadius,
                 cameraPos,
                 useRgss
@@ -52,7 +52,7 @@ public abstract class GameRendererMixin {
                 resolved.height(),
                 resolved.glintAlpha(),
                 resolved.gameTime(),
-                resolved.deltaTracker(),
+                resolved.gameTimeDeltaPartialTick(),
                 resolved.menuBlurRadius(),
                 resolved.cameraPos(),
                 resolved.useRgss()
@@ -60,7 +60,7 @@ public abstract class GameRendererMixin {
     }
 
     @Inject(method = "render", at = @At("TAIL"))
-    private void csdt$pollShaderDebugOutput(DeltaTracker deltaTracker, boolean advanceGameTime, CallbackInfo ci) {
+    private void csdt$pollShaderDebugOutput(CallbackInfo ci) {
         ShaderDebugRuntimeService.pollAndLogChanges();
     }
 

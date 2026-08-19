@@ -1,49 +1,29 @@
 package com.seailz.csdt.client.mixins;
 
-import com.mojang.renderpearl.api.buffers.GpuBuffer;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
-import com.mojang.renderpearl.api.pipeline.RenderPipeline;
-import com.mojang.renderpearl.api.pipeline.UniformType;
-import com.mojang.renderpearl.backend.vulkan.VulkanBindGroupLayout;
-import com.mojang.renderpearl.backend.vulkan.VulkanConst;
-import com.mojang.renderpearl.backend.vulkan.VulkanCommandEncoder;
-import com.mojang.renderpearl.backend.vulkan.VulkanDevice;
-import com.mojang.renderpearl.backend.vulkan.VulkanGpuBuffer;
+import com.mojang.renderpearl.backend.api.BackendRenderPipeline;
 import com.mojang.renderpearl.backend.vulkan.VulkanRenderPass;
 import com.mojang.renderpearl.backend.vulkan.VulkanRenderPipeline;
-import com.mojang.renderpearl.backend.vulkan.VulkanUtils;
 import com.seailz.csdt.client.service.ShaderDebugRuntimeService;
 import com.seailz.csdt.client.service.ShaderDebugSourceService;
-import com.seailz.csdt.client.service.UniformInspectorService;
-import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.KHRPushDescriptor;
+import it.unimi.dsi.fastutil.objects.ReferenceList;
 import org.lwjgl.vulkan.VK12;
-import org.lwjgl.vulkan.VkBufferViewCreateInfo;
-import org.lwjgl.vulkan.VkCommandBuffer;
-import org.lwjgl.vulkan.VkDescriptorBufferInfo;
-import org.lwjgl.vulkan.VkDescriptorImageInfo;
 import org.lwjgl.vulkan.VkWriteDescriptorSet;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.nio.LongBuffer;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 
 @Mixin(VulkanRenderPass.class)
 public abstract class VulkanRenderPassMixin {
-
-    @Shadow
-    @Final
-    private VulkanDevice device;
-
-    @Shadow
-    @Final
-    private VulkanCommandEncoder encoder;
 
     @Shadow
     private boolean anyDescriptorDirty;
@@ -53,155 +33,82 @@ public abstract class VulkanRenderPassMixin {
 
     @Shadow
     @Final
-    protected HashMap<String, GpuBufferSlice> uniforms;
+    protected ReferenceList<Object> uniforms;
 
-    @Shadow
-    @Final
-    protected HashMap<String, Object> textures;
+    @Unique
+    private static final ThreadLocal<Boolean> CSDT_DEBUG_UNIFORM = new ThreadLocal<>();
 
-    @Shadow
-    @Final
-    private VkCommandBuffer commandBuffer;
-
-    @Inject(method = "setUniform(Ljava/lang/String;Lcom/mojang/renderpearl/api/buffers/GpuBuffer;)V", at = @At("TAIL"))
-    private void csdt$recordUniformInspectorBuffer(String name, GpuBuffer buffer, CallbackInfo ci) {
-        UniformInspectorService.recordUniformBinding("Vulkan", this.pipeline == null ? null : this.pipeline.info(), name, buffer);
+    @Inject(method = "setPipeline", at = @At("TAIL"))
+    private void csdt$bindDebugStorage(BackendRenderPipeline pipeline, CallbackInfo ci) {
+        this.csdt$refreshDebugStorage();
     }
 
-    @Inject(method = "setUniform(Ljava/lang/String;Lcom/mojang/renderpearl/api/buffers/GpuBufferSlice;)V", at = @At("TAIL"))
-    private void csdt$recordUniformInspectorSlice(String name, GpuBufferSlice slice, CallbackInfo ci) {
-        UniformInspectorService.recordUniformBinding("Vulkan", this.pipeline == null ? null : this.pipeline.info(), name, slice);
+    @Inject(method = "pushDescriptors", at = @At("HEAD"))
+    private void csdt$prepareDebugStorage(CallbackInfo ci) {
+        CSDT_DEBUG_UNIFORM.remove();
+        this.csdt$refreshDebugStorage();
     }
 
-    @Inject(method = "pushDescriptors", at = @At("HEAD"), cancellable = true)
-    private void csdt$pushShaderDebugDescriptor(CallbackInfo ci) {
+    @Redirect(
+            method = "pushDescriptors",
+            at = @At(value = "INVOKE", target = "Ljava/util/List;get(I)Ljava/lang/Object;")
+    )
+    private Object csdt$trackDebugUniform(List<?> uniforms, int index) {
+        Object uniform = uniforms.get(index);
+        CSDT_DEBUG_UNIFORM.set(uniform instanceof BindGroupLayout.UniformDescription description
+                && ShaderDebugSourceService.DEBUG_BUFFER_NAME.equals(description.name()));
+        return uniform;
+    }
+
+    @Redirect(
+            method = "pushDescriptors",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lorg/lwjgl/vulkan/VkWriteDescriptorSet;dstBinding(I)Lorg/lwjgl/vulkan/VkWriteDescriptorSet;"
+            )
+    )
+    private VkWriteDescriptorSet csdt$useStorageBinding(VkWriteDescriptorSet descriptorSet, int binding) {
+        return descriptorSet.dstBinding(Boolean.TRUE.equals(CSDT_DEBUG_UNIFORM.get())
+                ? ShaderDebugSourceService.STORAGE_BINDING
+                : binding);
+    }
+
+    @Redirect(
+            method = "pushDescriptors",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lorg/lwjgl/vulkan/VkWriteDescriptorSet;descriptorType(I)Lorg/lwjgl/vulkan/VkWriteDescriptorSet;"
+            )
+    )
+    private VkWriteDescriptorSet csdt$useStorageDescriptorType(VkWriteDescriptorSet descriptorSet, int descriptorType) {
+        return descriptorSet.descriptorType(Boolean.TRUE.equals(CSDT_DEBUG_UNIFORM.get())
+                ? VK12.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+                : descriptorType);
+    }
+
+    @Inject(method = "pushDescriptors", at = @At("RETURN"))
+    private void csdt$clearDebugUniform(CallbackInfo ci) {
+        CSDT_DEBUG_UNIFORM.remove();
+    }
+
+    @Unique
+    private void csdt$refreshDebugStorage() {
         if (this.pipeline == null) {
             return;
         }
 
-        VulkanBindGroupLayout layout = this.pipeline.layout();
-        boolean hasDebugEntry = layout.entries().stream().anyMatch(entry -> ShaderDebugSourceService.DEBUG_BUFFER_NAME.equals(entry.name()));
-        if (!hasDebugEntry) {
+        List<BindGroupLayout.UniformDescription> pipelineUniforms = this.pipeline.uniforms();
+        for (int index = 0; index < pipelineUniforms.size(); index++) {
+            if (!ShaderDebugSourceService.DEBUG_BUFFER_NAME.equals(pipelineUniforms.get(index).name())) {
+                continue;
+            }
+
+            GpuBufferSlice storageSlice = ShaderDebugRuntimeService.storageSlice();
+            if (storageSlice != null && !Objects.equals(this.uniforms.get(index), storageSlice)) {
+                this.uniforms.set(index, storageSlice);
+                this.anyDescriptorDirty = true;
+            }
             return;
         }
-
-        if (!this.anyDescriptorDirty) {
-            ci.cancel();
-            return;
-        }
-
-        if (VulkanRenderPass.VALIDATION) {
-            for (BindGroupLayout.UniformDescription uniform : BindGroupLayout.flattenUniforms(this.pipeline.info().getBindGroupLayouts())) {
-                GpuBufferSlice value = this.uniforms.get(uniform.name());
-                if (value == null) {
-                    throw new IllegalStateException("Missing uniform " + uniform.name() + " (should be " + uniform.type() + ")");
-                }
-                if (uniform.type() == UniformType.UNIFORM_BUFFER) {
-                    if (value.buffer().isClosed()) {
-                        throw new IllegalStateException("Uniform buffer " + uniform.name() + " is already closed");
-                    }
-                    if ((value.buffer().usage() & GpuBuffer.USAGE_UNIFORM) == 0) {
-                        throw new IllegalStateException("Uniform buffer " + uniform.name() + " must have GpuBuffer.USAGE_UNIFORM");
-                    }
-                }
-                if (uniform.type() != UniformType.TEXEL_BUFFER) {
-                    continue;
-                }
-                if (value.offset() != 0L || value.length() != value.buffer().size()) {
-                    throw new IllegalStateException("Uniform texel buffers do not support a slice of a buffer, must be entire buffer");
-                }
-                if (uniform.gpuFormat() == null) {
-                    throw new IllegalStateException("Invalid uniform texel buffer " + uniform.name() + " (missing a texture format)");
-                }
-            }
-        }
-
-        try (MemoryStack stack = MemoryStack.stackPush()) {
-            VkWriteDescriptorSet.Buffer writes = VkWriteDescriptorSet.calloc(layout.entries().size(), stack);
-            for (int index = 0; index < layout.entries().size(); index++) {
-                VulkanBindGroupLayout.Entry entry = layout.entries().get(index);
-                VkWriteDescriptorSet set = writes.get(index);
-                set.sType$Default();
-                set.dstBinding(ShaderDebugSourceService.DEBUG_BUFFER_NAME.equals(entry.name()) ? ShaderDebugSourceService.STORAGE_BINDING : index);
-                set.dstArrayElement(0);
-                set.descriptorCount(1);
-
-                if (ShaderDebugSourceService.DEBUG_BUFFER_NAME.equals(entry.name())) {
-                    GpuBufferSlice buffer = ShaderDebugRuntimeService.storageSlice();
-                    if (buffer == null) {
-                        throw new IllegalStateException("Shader debug buffer is unavailable for Vulkan descriptors");
-                    }
-                    VkDescriptorBufferInfo.Buffer bufferInfo = VkDescriptorBufferInfo.calloc(1, stack);
-                    bufferInfo.buffer(((VulkanGpuBuffer) buffer.buffer()).vkBuffer());
-                    bufferInfo.offset(buffer.offset());
-                    bufferInfo.range(buffer.length());
-                    set.descriptorType(VK12.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
-                    set.pBufferInfo(bufferInfo);
-                    continue;
-                }
-
-                switch (entry.type()) {
-                    case UNIFORM_BUFFER -> {
-                        GpuBufferSlice buffer = this.uniforms.get(entry.name());
-                        if (buffer == null) {
-                            throw new IllegalStateException("Missing uniform " + entry.name() + " (should be " + entry.type() + ")");
-                        }
-                        VkDescriptorBufferInfo.Buffer bufferInfo = VkDescriptorBufferInfo.calloc(1, stack);
-                        bufferInfo.buffer(((VulkanGpuBuffer) buffer.buffer()).vkBuffer());
-                        bufferInfo.offset(buffer.offset());
-                        bufferInfo.range(buffer.length());
-                        set.descriptorType(VK12.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
-                        set.pBufferInfo(bufferInfo);
-                    }
-                    case SAMPLED_IMAGE -> {
-                        Object value = this.textures.get(entry.name());
-                        if (value == null) {
-                            throw new IllegalStateException("Missing sampler " + entry.name());
-                        }
-                        VulkanRenderPassTextureBindingAccessor binding = (VulkanRenderPassTextureBindingAccessor) value;
-                        VkDescriptorImageInfo.Buffer imageInfo = VkDescriptorImageInfo.calloc(1, stack);
-                        imageInfo.sampler(binding.csdt$getSampler().vkSampler());
-                        imageInfo.imageView(binding.csdt$getView().vkImageView());
-                        imageInfo.imageLayout(VK12.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-                        set.descriptorType(VK12.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-                        set.pImageInfo(imageInfo);
-                    }
-                    case TEXEL_BUFFER -> {
-                        GpuBufferSlice value = this.uniforms.get(entry.name());
-                        if (value == null) {
-                            throw new IllegalStateException("Missing uniform " + entry.name() + " (should be " + entry.type() + ")");
-                        }
-                        LongBuffer bufferViewPtr = stack.mallocLong(1);
-                        VkBufferViewCreateInfo viewCreateInfo = VkBufferViewCreateInfo.calloc(stack).sType$Default();
-                        viewCreateInfo.buffer(((VulkanGpuBuffer) value.buffer()).vkBuffer());
-                        viewCreateInfo.offset(value.offset());
-                        viewCreateInfo.range(value.length());
-                        if (entry.texelBufferFormat() == null) {
-                            throw new IllegalStateException("Texel buffer " + entry.name() + " is missing a GPU format");
-                        }
-                        viewCreateInfo.format(VulkanConst.toVk(entry.texelBufferFormat()));
-                        VulkanUtils.crashIfFailure(
-                                this.device,
-                                VK12.vkCreateBufferView(this.device.vkDevice(), viewCreateInfo, null, bufferViewPtr),
-                                "Couldn't create buffer view for texel buffer"
-                        );
-                        long bufferViewHandle = bufferViewPtr.get(0);
-                        this.encoder.queueForDestroy(() -> VK12.vkDestroyBufferView(this.device.vkDevice(), bufferViewHandle, null));
-                        set.descriptorType(VK12.VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER);
-                        set.pTexelBufferView(bufferViewPtr);
-                    }
-                }
-            }
-            KHRPushDescriptor.vkCmdPushDescriptorSetKHR(
-                    this.commandBuffer,
-                    VK12.VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    this.pipeline.pipelineLayout(),
-                    0,
-                    writes
-            );
-        }
-
-        this.anyDescriptorDirty = false;
-        ci.cancel();
     }
 }

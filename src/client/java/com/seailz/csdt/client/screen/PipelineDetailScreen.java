@@ -1,6 +1,8 @@
 package com.seailz.csdt.client.screen;
 
 import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
+import com.mojang.renderpearl.api.pipeline.ShaderType;
+import com.mojang.renderpearl.api.pipeline.UniformType;
 import com.seailz.csdt.client.service.ClientToastService;
 import com.seailz.csdt.client.service.PipelineInventoryService;
 import com.seailz.csdt.client.service.ShaderInventoryService;
@@ -10,7 +12,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public final class PipelineDetailScreen extends Screen {
@@ -106,8 +107,8 @@ public final class PipelineDetailScreen extends Screen {
         int top = 84;
         int cardWidth = (panelWidth - 30) / 2;
 
-        renderCard(guiGraphics, left + 10, top, cardWidth, "Vertex Shader", shortId(this.pipeline.pipeline().getVertexShader()), 0xFF4CC9F0);
-        renderCard(guiGraphics, left + 20 + cardWidth, top, cardWidth, "Fragment Shader", shortId(this.pipeline.pipeline().getFragmentShader()), 0xFFFFD166);
+        renderCard(guiGraphics, left + 10, top, cardWidth, "Vertex Shader", shortId(this.pipeline.pipeline().getShaders().get(ShaderType.VERTEX)), 0xFF4CC9F0);
+        renderCard(guiGraphics, left + 20 + cardWidth, top, cardWidth, "Fragment Shader", shortId(this.pipeline.pipeline().getShaders().get(ShaderType.FRAGMENT)), 0xFFFFD166);
 
         int badgeY = top + 40;
         renderBadge(guiGraphics, left + 12, badgeY, this.pipeline.pipeline().isCull() ? "Cull On" : "Cull Off", this.pipeline.pipeline().isCull() ? 0xFF7FB685 : 0xFFF4A261);
@@ -163,17 +164,23 @@ public final class PipelineDetailScreen extends Screen {
         var pipeline = this.pipeline.pipeline();
 
         addHeader("Geometry");
-        addList("Vertex Formats", List.of(pipeline.getVertexFormatBindings()).stream().map(String::valueOf).toList());
+        addList("Vertex Formats", pipeline.getVertexFormatBindings().stream().map(String::valueOf).toList());
         addDetail("Primitive Topology", String.valueOf(pipeline.getPrimitiveTopology()));
         addDetail("Polygon Mode", String.valueOf(pipeline.getPolygonMode()));
 
         addHeader("Resources");
-        addList("Samplers", BindGroupLayout.flattenSamplers(pipeline.getBindGroupLayouts()).stream().map(String::valueOf).toList());
-        addList("Uniforms", BindGroupLayout.flattenUniforms(pipeline.getBindGroupLayouts()).stream().map(String::valueOf).toList());
+        addList("Samplers", BindGroupLayout.flattenUniforms(pipeline.getBindGroupLayouts()).stream()
+                .filter(uniform -> uniform.type() == UniformType.COMBINED_IMAGE_SAMPLER)
+                .map(String::valueOf)
+                .toList());
+        addList("Uniforms", BindGroupLayout.flattenUniforms(pipeline.getBindGroupLayouts()).stream()
+                .filter(uniform -> uniform.type() != UniformType.COMBINED_IMAGE_SAMPLER)
+                .map(String::valueOf)
+                .toList());
         addList("Defines", List.of(String.valueOf(pipeline.getShaderDefines())));
 
         addHeader("Targets");
-        addList("Color Targets", Arrays.stream(pipeline.getColorTargetStates()).map(String::valueOf).toList());
+        addList("Color Targets", pipeline.getColorTargetStates().stream().map(String::valueOf).toList());
         addDetail("Depth/Stencil", pipeline.getDepthStencilState() == null ? "<none>" : String.valueOf(pipeline.getDepthStencilState()));
     }
 
@@ -223,7 +230,7 @@ public final class PipelineDetailScreen extends Screen {
 
     private void openShader(boolean fragment) {
         ShaderInventoryService.ShaderResourceEntry entry = ShaderInventoryService.findPipelineShaderEntry(
-                fragment ? this.pipeline.pipeline().getFragmentShader() : this.pipeline.pipeline().getVertexShader(),
+                this.pipeline.pipeline().getShaders().get(fragment ? ShaderType.FRAGMENT : ShaderType.VERTEX),
                 fragment
         );
         if (entry == null) {

@@ -28,6 +28,18 @@ public final class ForcedPostEffectService {
         ClientToastService.showInfo("Post effect forced", postEffectId.toString());
     }
 
+    public static void setForcedPostEffect(String resourcePath, boolean enabled) {
+        if (!enabled) {
+            clearForcedPostEffect();
+            return;
+        }
+
+        Identifier resourceId = Identifier.parse(resourcePath);
+        forcedPostEffectId = POST_EFFECT_ID_CONVERTER.fileToId(resourceId);
+        applyForcedPostEffect();
+        ClientToastService.showInfo("Post effect forced", forcedPostEffectId.toString());
+    }
+
     public static boolean isForced(String resourcePath) {
         Identifier resourceId = Identifier.parse(resourcePath);
         return POST_EFFECT_ID_CONVERTER.fileToId(resourceId).equals(forcedPostEffectId);

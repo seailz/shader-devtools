@@ -8,19 +8,17 @@
     "DynamicUniformStorageMixin",
     "FogRendererMixin",
     "GameRendererMixin",
-    "GlRenderPassMixin",
     "GlBufferAccessor",
     "GlCommandEncoderMixin",
-    "GlslCompilerMixin",
     "GpuDeviceMixin",
     "MinecraftClientMixin",
+    "PipelineBuilderMixin",
     "RenderPassMixin",
     "ShaderManagerDebugMixin",
     "ShaderManagerMixin",
-    "VulkanBindGroupLayoutMixin",
     "VulkanConstMixin",
     "VulkanRenderPassMixin",
-    "VulkanRenderPassTextureBindingAccessor"
+    "VulkanRenderPipelineMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -16,3 +16,4 @@
 /run/resourcepacks/*
 !/run/resourcepacks/testpack/
 !/run/resourcepacks/testpack/**
+run

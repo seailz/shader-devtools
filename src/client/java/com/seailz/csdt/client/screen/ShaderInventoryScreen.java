@@ -1,5 +1,6 @@
 package com.seailz.csdt.client.screen;
 
+import com.mojang.renderpearl.api.pipeline.ShaderType;
 import com.seailz.csdt.client.service.PipelineInventoryService;
 import com.seailz.csdt.client.service.ShaderInventoryService;
 import com.seailz.csdt.client.service.ShaderResourceOverrideService;
@@ -273,7 +274,8 @@ public final class ShaderInventoryScreen extends Screen {
 
         @Override
         public String subtitle() {
-            return this.entry.pipeline().getVertexShader() + " -> " + this.entry.pipeline().getFragmentShader();
+            return this.entry.pipeline().getShaders().get(ShaderType.VERTEX)
+                    + " -> " + this.entry.pipeline().getShaders().get(ShaderType.FRAGMENT);
         }
 
         @Override

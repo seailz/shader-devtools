@@ -14,7 +14,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.glfw.GLFW;
 
 public class CoreShaderDevToolsClient implements ClientModInitializer {
 
@@ -28,14 +27,14 @@ public class CoreShaderDevToolsClient implements ClientModInitializer {
         KeyMapping.Category category = KeyMapping.Category.register(Identifier.parse("coreshader-devtools:main"));
         reloadCoreShadersKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.coreshader-devtools.reload_core_shaders",
-                InputConstants.Type.KEYSYM,
-                GLFW.GLFW_KEY_R,
+                InputConstants.Type.KEYBOARD,
+                InputConstants.KEY_R,
                 category
         ));
         openShaderDevToolsMenuKey = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.coreshader-devtools.shader_dev_tools_menu",
-                InputConstants.Type.KEYSYM,
-                GLFW.GLFW_KEY_G,
+                InputConstants.Type.KEYBOARD,
+                InputConstants.KEY_G,
                 category
         ));
 

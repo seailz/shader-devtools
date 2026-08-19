@@ -2,6 +2,7 @@ package com.seailz.csdt.client.mixins;
 
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.seailz.csdt.client.service.UniformInspectorService;
+import com.seailz.csdt.client.service.FogFrameInspectionService;
 import net.minecraft.client.renderer.MappableRingBuffer;
 import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.client.renderer.fog.FogRenderer;
@@ -24,6 +25,7 @@ public abstract class FogRendererMixin {
 
     @Inject(method = "updateBuffer(Lnet/minecraft/client/renderer/fog/FogData;)V", at = @At("TAIL"))
     private void csdt$recordUniformInspectorFogWrite(FogData fogData, CallbackInfo ci) {
+        FogFrameInspectionService.record(fogData);
         ByteBuffer buffer = ByteBuffer.allocateDirect(FogRenderer.FOG_UBO_SIZE).order(ByteOrder.nativeOrder());
         Std140Builder.intoBuffer(buffer)
                 .putVec4(fogData.color)

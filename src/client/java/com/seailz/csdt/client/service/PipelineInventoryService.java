@@ -2,11 +2,13 @@ package com.seailz.csdt.client.service;
 
 import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.ShaderType;
+import com.mojang.renderpearl.api.pipeline.UniformType;
 import net.minecraft.client.renderer.RenderPipelines;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 public final class PipelineInventoryService {
 
@@ -14,7 +16,7 @@ public final class PipelineInventoryService {
     }
 
     public static List<PipelineEntry> listPipelines() {
-        return RenderPipelines.getStaticPipelines().stream()
+        return Stream.concat(RenderPipelines.requiredPipelines().stream(), RenderPipelines.optionalPipelines().stream())
                 .sorted(Comparator.comparing(pipeline -> pipeline.getLocation().toString()))
                 .map(PipelineEntry::new)
                 .toList();
@@ -43,19 +45,31 @@ public final class PipelineInventoryService {
                 Color Targets: %s
                 Depth/Stencil: %s
                 """.formatted(
-                shortId(pipeline.getVertexShader()),
-                shortId(pipeline.getFragmentShader()),
-                Arrays.toString(pipeline.getVertexFormatBindings()),
+                shortId(pipeline.getShaders().get(ShaderType.VERTEX)),
+                shortId(pipeline.getShaders().get(ShaderType.FRAGMENT)),
+                pipeline.getVertexFormatBindings(),
                 pipeline.getPrimitiveTopology(),
                 pipeline.getPolygonMode(),
-                formatList(BindGroupLayout.flattenSamplers(pipeline.getBindGroupLayouts())),
-                formatList(BindGroupLayout.flattenUniforms(pipeline.getBindGroupLayouts())),
+                formatList(samplers(pipeline)),
+                formatList(uniforms(pipeline)),
                 pipeline.getShaderDefines(),
                 pipeline.isCull() ? "Enabled" : "Disabled",
                 pipeline.wantsDepthTexture() ? "Yes" : "No",
-                Arrays.toString(pipeline.getColorTargetStates()),
+                pipeline.getColorTargetStates(),
                 pipeline.getDepthStencilState() == null ? "<none>" : pipeline.getDepthStencilState().toString()
         ).trim();
+    }
+
+    private static List<BindGroupLayout.UniformDescription> samplers(RenderPipeline pipeline) {
+        return BindGroupLayout.flattenUniforms(pipeline.getBindGroupLayouts()).stream()
+                .filter(uniform -> uniform.type() == UniformType.COMBINED_IMAGE_SAMPLER)
+                .toList();
+    }
+
+    private static List<BindGroupLayout.UniformDescription> uniforms(RenderPipeline pipeline) {
+        return BindGroupLayout.flattenUniforms(pipeline.getBindGroupLayouts()).stream()
+                .filter(uniform -> uniform.type() != UniformType.COMBINED_IMAGE_SAMPLER)
+                .toList();
     }
 
     private static String formatList(List<?> values) {

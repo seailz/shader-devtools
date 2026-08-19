@@ -3,8 +3,8 @@ package com.seailz.csdt.client.service;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-import com.mojang.blaze3d.preprocessor.GlslPreprocessor;
 import com.mojang.renderpearl.api.pipeline.ShaderType;
+import com.mojang.logging.LogUtils;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.client.renderer.PostChainConfig;
 import net.minecraft.client.renderer.ShaderManager;
@@ -12,12 +12,12 @@ import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.StrictJsonParser;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.HashMap;
@@ -27,6 +27,7 @@ import java.util.Set;
 
 public final class ShaderResourceOverrideService {
 
+    private static final Logger LOGGER = LogUtils.getLogger();
     private static final FileToIdConverter POST_EFFECT_ID_CONVERTER = FileToIdConverter.json("post_effect");
     private static final Pattern FRAGMENT_OUTPUT_PATTERN = Pattern.compile("out\\s+vec4\\s+(\\w+)\\s*;");
     private static final Pattern MAIN_PATTERN = Pattern.compile("void\\s+main\\s*\\(\\s*\\)\\s*\\{");
@@ -92,12 +93,13 @@ public final class ShaderResourceOverrideService {
             }
 
             try {
-                String source = loadShaderSource(resourceManager, location, version);
+                String source = loadShaderSource(location, version);
                 if (VISUALIZED_FRAGMENT_SHADERS.contains(resourcePath) && shaderType == ShaderType.FRAGMENT) {
                     source = visualizeFragmentShader(source);
                 }
                 shaderSources.put(shaderSourceKey(shaderType.idConverter().fileToId(location), shaderType), source);
-            } catch (IOException ignored) {
+            } catch (IOException exception) {
+                LOGGER.error("Failed to load shader override at {}", location, exception);
             }
         }
 
@@ -125,24 +127,15 @@ public final class ShaderResourceOverrideService {
             JsonElement json = StrictJsonParser.parse(new StringReader(source));
             PostChainConfig config = PostChainConfig.CODEC.parse(JsonOps.INSTANCE, json).getOrThrow(JsonSyntaxException::new);
             postChains.put(POST_EFFECT_ID_CONVERTER.fileToId(location), config);
-        } catch (JsonParseException | IOException ignored) {
+        } catch (JsonParseException | IOException exception) {
+            LOGGER.error("Failed to apply post-effect override at {}", location, exception);
         }
     }
 
-    private static String loadShaderSource(ResourceManager resourceManager, Identifier location, ShaderInventoryService.ShaderResourceVersion version) throws IOException {
+    private static String loadShaderSource(Identifier location, ShaderInventoryService.ShaderResourceVersion version) throws IOException {
         String source = ShaderInventoryService.loadText(version);
-        Map<Identifier, net.minecraft.server.packs.resources.Resource> shaderResources = resourceManager.listResources("shaders", id ->
-                id.getPath().endsWith(".vsh") || id.getPath().endsWith(".fsh") || id.getPath().endsWith(".glsl"));
-        try {
-            Method method = ShaderManager.class.getDeclaredMethod("createPreprocessor", Map.class, Identifier.class);
-            method.setAccessible(true);
-            GlslPreprocessor preprocessor = (GlslPreprocessor) method.invoke(null, shaderResources, location);
-            ShaderType shaderType = ShaderType.byLocation(location);
-            String processed = String.join("", preprocessor.process(source));
-            return shaderType == null ? processed : ShaderDebugSourceService.transformShaderSource(location, shaderType, processed);
-        } catch (ReflectiveOperationException exception) {
-            throw new IOException("Failed to preprocess shader source", exception);
-        }
+        ShaderType shaderType = ShaderType.byLocation(location);
+        return shaderType == null ? source : ShaderDebugSourceService.transformShaderSource(location, shaderType, source);
     }
 
     private static Object shaderSourceKey(Identifier id, ShaderType shaderType) {

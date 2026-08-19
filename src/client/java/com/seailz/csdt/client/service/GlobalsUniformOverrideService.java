@@ -1,7 +1,6 @@
 package com.seailz.csdt.client.service;
 
 import com.seailz.csdt.client.state.GlobalsOverrideState;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -17,7 +16,7 @@ public final class GlobalsUniformOverrideService {
             int height,
             double glintAlpha,
             long gameTime,
-            DeltaTracker deltaTracker,
+            float gameTimeDeltaPartialTick,
             int menuBlurRadius,
             Vec3 cameraPos,
             boolean useRgss
@@ -28,7 +27,7 @@ public final class GlobalsUniformOverrideService {
                 pick(state.getScreenHeight(), height),
                 pick(state.getGlintAlpha(), glintAlpha),
                 pick(state.getGameTime(), gameTime),
-                deltaTracker,
+                gameTimeDeltaPartialTick,
                 pick(state.getMenuBlurRadius(), menuBlurRadius),
                 pick(state.getCameraPos(), cameraPos),
                 pick(state.getUseRgss(), useRgss)
@@ -44,7 +43,7 @@ public final class GlobalsUniformOverrideService {
             int height,
             double glintAlpha,
             long gameTime,
-            DeltaTracker deltaTracker,
+            float gameTimeDeltaPartialTick,
             int menuBlurRadius,
             Vec3 cameraPos,
             boolean useRgss
