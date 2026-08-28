@@ -221,21 +221,26 @@ public final class ShaderResourceDetailScreen extends Screen {
         int yOffset = (int) (scroll % lineHeight);
         int y = innerTop - yOffset;
 
-        guiGraphics.enableScissor(editorLeft - GUTTER_WIDTH, editorTop, editorRight, editorBottom);
-        for (int lineIndex = firstLine; lineIndex < this.visualLines.size() && y < editorBottom; lineIndex++) {
-            if (y + lineHeight >= editorTop) {
-                VisualLine visualLine = this.visualLines.get(lineIndex);
-                String lineNumber = visualLine.showLineNumber() ? "%4d".formatted(visualLine.sourceLineNumber()) : "    ";
-                guiGraphics.text(this.font, lineNumber, editorLeft - GUTTER_WIDTH + 6, y, 0xFF7A8795, false);
-                int x = innerLeft;
-                for (GlslSyntaxHighlightService.Token token : visualLine.tokens()) {
-                    guiGraphics.text(this.font, token.text(), x, y, token.color(), false);
-                    x += this.font.width(token.text());
-                }
-            }
-            y += lineHeight;
+        if (!ScreenScissor.enableIfNonEmpty(guiGraphics, editorLeft - GUTTER_WIDTH, editorTop, editorRight, editorBottom)) {
+            return;
         }
-        guiGraphics.disableScissor();
+        try {
+            for (int lineIndex = firstLine; lineIndex < this.visualLines.size() && y < editorBottom; lineIndex++) {
+                if (y + lineHeight >= editorTop) {
+                    VisualLine visualLine = this.visualLines.get(lineIndex);
+                    String lineNumber = visualLine.showLineNumber() ? "%4d".formatted(visualLine.sourceLineNumber()) : "    ";
+                    guiGraphics.text(this.font, lineNumber, editorLeft - GUTTER_WIDTH + 6, y, 0xFF7A8795, false);
+                    int x = innerLeft;
+                    for (GlslSyntaxHighlightService.Token token : visualLine.tokens()) {
+                        guiGraphics.text(this.font, token.text(), x, y, token.color(), false);
+                        x += this.font.width(token.text());
+                    }
+                }
+                y += lineHeight;
+            }
+        } finally {
+            guiGraphics.disableScissor();
+        }
     }
 
     private void renderPostEffectSummary(GuiGraphicsExtractor guiGraphics) {
@@ -255,27 +260,30 @@ public final class ShaderResourceDetailScreen extends Screen {
 
         guiGraphics.text(this.font, "Post Graph", summaryLeft + 8, y, 0xFFFFFFFF, false);
         y = bodyTop - this.postSummaryScroll * this.font.lineHeight;
-        guiGraphics.enableScissor(summaryLeft + 6, bodyTop, summaryLeft + summaryWidth - 6, bodyBottom);
-
-        if (!this.postEffectVisualization.parsed()) {
-            int end = Math.min(this.postSummaryRows.size(), this.postSummaryScroll + visiblePostSummaryRows() + 2);
-            for (int i = this.postSummaryScroll; i < end; i++) {
-                PostSummaryRow row = this.postSummaryRows.get(i);
-                if (y + this.font.lineHeight >= bodyTop) {
-                    guiGraphics.text(this.font, row.text(), summaryLeft + 8, y, row.color(), false);
-                }
-                y += this.font.lineHeight;
-                if (y > bodyBottom) {
-                    break;
-                }
-            }
-            guiGraphics.disableScissor();
+        if (!ScreenScissor.enableIfNonEmpty(guiGraphics, summaryLeft + 6, bodyTop, summaryLeft + summaryWidth - 6, bodyBottom)) {
             return;
         }
+        try {
+            if (!this.postEffectVisualization.parsed()) {
+                int end = Math.min(this.postSummaryRows.size(), this.postSummaryScroll + visiblePostSummaryRows() + 2);
+                for (int i = this.postSummaryScroll; i < end; i++) {
+                    PostSummaryRow row = this.postSummaryRows.get(i);
+                    if (y + this.font.lineHeight >= bodyTop) {
+                        guiGraphics.text(this.font, row.text(), summaryLeft + 8, y, row.color(), false);
+                    }
+                    y += this.font.lineHeight;
+                    if (y > bodyBottom) {
+                        break;
+                    }
+                }
+                return;
+            }
 
-        y = renderGraphSection(guiGraphics, summaryLeft, summaryWidth, y, "Targets", 0xFF4CC9F0, buildTargetRows());
-        renderGraphSection(guiGraphics, summaryLeft, summaryWidth, y + 4, "Passes", 0xFFFFD166, buildPassRows());
-        guiGraphics.disableScissor();
+            y = renderGraphSection(guiGraphics, summaryLeft, summaryWidth, y, "Targets", 0xFF4CC9F0, buildTargetRows());
+            renderGraphSection(guiGraphics, summaryLeft, summaryWidth, y + 4, "Passes", 0xFFFFD166, buildPassRows());
+        } finally {
+            guiGraphics.disableScissor();
+        }
     }
 
     private void toggleSourceSelection() {

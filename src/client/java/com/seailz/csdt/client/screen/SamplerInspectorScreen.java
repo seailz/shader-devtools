@@ -320,14 +320,18 @@ public final class SamplerInspectorScreen extends Screen {
 
         List<String> readbackLines = this.lastReadback == null ? List.of("No readback yet") : this.lastReadback.displayLines();
         int bottom = this.height - 42;
-        guiGraphics.enableScissor(detailLeft, y, detailLeft + detailWidth - 8, bottom);
-        int rowY = y;
-        int end = Math.min(readbackLines.size(), this.scrollRows + visibleReadbackRows(y));
-        for (int i = this.scrollRows; i < end; i++) {
-            guiGraphics.text(this.font, this.font.plainSubstrByWidth(readbackLines.get(i), detailWidth - 16), detailLeft, rowY, this.lastReadback != null && !this.lastReadback.success() ? 0xFFF4A261 : 0xFFE6EEF7, false);
-            rowY += LINE_HEIGHT;
+        if (ScreenScissor.enableIfNonEmpty(guiGraphics, detailLeft, y, detailLeft + detailWidth - 8, bottom)) {
+            try {
+                int rowY = y;
+                int end = Math.min(readbackLines.size(), this.scrollRows + visibleReadbackRows(y));
+                for (int i = this.scrollRows; i < end; i++) {
+                    guiGraphics.text(this.font, this.font.plainSubstrByWidth(readbackLines.get(i), detailWidth - 16), detailLeft, rowY, this.lastReadback != null && !this.lastReadback.success() ? 0xFFF4A261 : 0xFFE6EEF7, false);
+                    rowY += LINE_HEIGHT;
+                }
+            } finally {
+                guiGraphics.disableScissor();
+            }
         }
-        guiGraphics.disableScissor();
     }
 
     private Component previewModeLabel() {
@@ -358,11 +362,12 @@ public final class SamplerInspectorScreen extends Screen {
         }
         int drawX = x + (size - drawWidth) / 2;
         int drawY = y + (size - drawHeight) / 2;
-        guiGraphics.enableScissor(drawX, drawY, drawX + drawWidth, drawY + drawHeight);
-        try {
-            guiGraphics.blit(preview.view(), preview.sampler(), drawX, drawY, drawX + drawWidth, drawY + drawHeight, 0.0F, 1.0F, 0.0F, 1.0F);
-        } finally {
-            guiGraphics.disableScissor();
+        if (ScreenScissor.enableIfNonEmpty(guiGraphics, drawX, drawY, drawX + drawWidth, drawY + drawHeight)) {
+            try {
+                guiGraphics.blit(preview.view(), preview.sampler(), drawX, drawY, drawX + drawWidth, drawY + drawHeight, 0.0F, 1.0F, 0.0F, 1.0F);
+            } finally {
+                guiGraphics.disableScissor();
+            }
         }
         guiGraphics.outline(drawX, drawY, drawWidth, drawHeight, 0x88445A6B);
         renderCoordinateMarker(guiGraphics, entry, drawX, drawY, drawWidth, drawHeight);

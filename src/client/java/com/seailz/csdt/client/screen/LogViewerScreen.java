@@ -181,16 +181,21 @@ public final class LogViewerScreen extends Screen {
         int y = top;
         int end = Math.min(this.rows.size(), this.scrollRows + visibleRowCount() + 1);
 
-        guiGraphics.enableScissor(left, top, left + width, top + height);
-        for (int index = this.scrollRows; index < end; index++) {
-            Row row = this.rows.get(index);
-            guiGraphics.text(this.font, row.text(), left, y, row.color(), false);
-            y += LINE_HEIGHT;
-            if (y > top + height) {
-                break;
-            }
+        if (!ScreenScissor.enableIfNonEmpty(guiGraphics, left, top, left + width, top + height)) {
+            return;
         }
-        guiGraphics.disableScissor();
+        try {
+            for (int index = this.scrollRows; index < end; index++) {
+                Row row = this.rows.get(index);
+                guiGraphics.text(this.font, row.text(), left, y, row.color(), false);
+                y += LINE_HEIGHT;
+                if (y > top + height) {
+                    break;
+                }
+            }
+        } finally {
+            guiGraphics.disableScissor();
+        }
     }
 
     private void renderFooter(GuiGraphicsExtractor guiGraphics) {

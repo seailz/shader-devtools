@@ -3,6 +3,7 @@ package com.seailz.csdt.client.mixins;
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
 import com.seailz.csdt.client.service.UniformInspectorService;
 import net.minecraft.client.renderer.DynamicGpuDataStorage;
+import net.minecraft.client.renderer.DynamicGpuDataStorageMapped;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -13,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-@Mixin(DynamicGpuDataStorage.class)
+@Mixin(DynamicGpuDataStorageMapped.class)
 public abstract class DynamicUniformStorageMixin {
 
     private static final ThreadLocal<ByteBuffer> CSDT_SCRATCH_BUFFER = ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(0));

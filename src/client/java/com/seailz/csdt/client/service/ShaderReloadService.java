@@ -1,20 +1,17 @@
 package com.seailz.csdt.client.service;
 
 import com.mojang.logging.LogUtils;
-import com.seailz.csdt.client.mixins.ShaderManagerMixin;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ShaderManager;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.profiling.Profiler;
-import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
+import net.minecraft.util.Util;
 import org.slf4j.Logger;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 /**
  * Util to help with reloading shaders without triggering a full resource pack reload.
@@ -64,31 +61,12 @@ public final class ShaderReloadService {
         long startedAt = System.nanoTime();
         try {
             ShaderManager shaderManager = minecraft.getShaderManager();
-            ResourceManager resourceManager = minecraft.getResourceManager();
-            ProfilerFiller profiler = Profiler.get();
-            ShaderManager.Configs prepared = ((ShaderManagerMixin) shaderManager).csdt$prepare(resourceManager, profiler);
-            prepared = ShaderResourceOverrideService.applyOverrides(prepared, resourceManager);
-            ShaderManager.Configs current = currentConfigs(shaderManager);
-            ShaderManager.Configs merged = switch (scope) {
-                case CORE_ONLY -> new ShaderManager.Configs(prepared.shaderSources(), current.postChains());
-                case POST_ONLY -> new ShaderManager.Configs(current.shaderSources(), prepared.postChains());
-                case ALL -> prepared;
-            };
-
-            if (scope == ReloadScope.POST_ONLY) {
-                replaceCompilationCache(shaderManager, merged);
-            } else {
-                ((ShaderManagerMixin) shaderManager).csdt$apply(merged, resourceManager, profiler);
-            }
-
-            ReloadStat stat = ReloadStat.success(System.currentTimeMillis(), nanosToMillis(startedAt, System.nanoTime()));
-            STATS.put(scope, stat);
-            ClientToastService.showReloadResult(scope, stat);
+            PreparableReloadListener.SharedState reloadState = new PreparableReloadListener.SharedState(minecraft.getResourceManager());
+            PreparableReloadListener.PreparationBarrier barrier = CompletableFuture::completedFuture;
+            shaderManager.reload(reloadState, Util.backgroundExecutor(), barrier, minecraft::execute)
+                    .whenCompleteAsync((unused, throwable) -> completeReload(scope, startedAt, throwable), minecraft::execute);
         } catch (Exception exception) {
-            ReloadStat stat = ReloadStat.failure(System.currentTimeMillis(), nanosToMillis(startedAt, System.nanoTime()), exception.getClass().getSimpleName() + ": " + exception.getMessage());
-            STATS.put(scope, stat);
-            ClientToastService.showReloadResult(scope, stat);
-            LOGGER.error("Failed to reload {} shaders", scope.logName, exception);
+            completeReload(scope, startedAt, exception);
         }
     }
 
@@ -96,48 +74,25 @@ public final class ShaderReloadService {
         return Duration.ofNanos(endedAt - startedAt).toMillis();
     }
 
-    private static ShaderManager.Configs currentConfigs(ShaderManager shaderManager) throws ReflectiveOperationException {
-        Object compilationCache = compilationCacheField().get(shaderManager);
-        return (ShaderManager.Configs) compilationConfigsField().get(compilationCache);
-    }
-
-    private static void replaceCompilationCache(ShaderManager shaderManager, ShaderManager.Configs configs) throws ReflectiveOperationException {
-        Field compilationCacheField = compilationCacheField();
-        Object oldCache = compilationCacheField.get(shaderManager);
-        Method closeMethod = oldCache.getClass().getDeclaredMethod("close");
-        closeMethod.setAccessible(true);
-        closeMethod.invoke(oldCache);
-        compilationCacheField.set(shaderManager, newCompilationCache(shaderManager, configs));
-    }
-
-    private static Object newCompilationCache(ShaderManager shaderManager, ShaderManager.Configs configs) throws ReflectiveOperationException {
-        Constructor<?> constructor = Class.forName("net.minecraft.client.renderer.ShaderManager$CompilationCache").getDeclaredConstructors()[0];
-        constructor.setAccessible(true);
-        Class<?>[] parameterTypes = constructor.getParameterTypes();
-        Object[] arguments = new Object[parameterTypes.length];
-        for (int i = 0; i < parameterTypes.length; i++) {
-            Class<?> parameterType = parameterTypes[i];
-            if (ShaderManager.class.isAssignableFrom(parameterType)) {
-                arguments[i] = shaderManager;
-            } else if (ShaderManager.Configs.class.isAssignableFrom(parameterType)) {
-                arguments[i] = configs;
-            } else {
-                throw new IllegalStateException("Unsupported ShaderManager$CompilationCache constructor parameter: " + parameterType.getName());
-            }
+    private static void completeReload(ReloadScope scope, long startedAt, Throwable throwable) {
+        if (throwable == null) {
+            ReloadStat stat = ReloadStat.success(System.currentTimeMillis(), nanosToMillis(startedAt, System.nanoTime()));
+            STATS.put(scope, stat);
+            ClientToastService.showReloadResult(scope, stat);
+            return;
         }
-        return constructor.newInstance(arguments);
-    }
 
-    private static Field compilationCacheField() throws NoSuchFieldException {
-        Field field = ShaderManager.class.getDeclaredField("compilationCache");
-        field.setAccessible(true);
-        return field;
-    }
-
-    private static Field compilationConfigsField() throws ClassNotFoundException, NoSuchFieldException {
-        Field field = Class.forName("net.minecraft.client.renderer.ShaderManager$CompilationCache").getDeclaredField("configs");
-        field.setAccessible(true);
-        return field;
+        Throwable cause = throwable instanceof CompletionException && throwable.getCause() != null
+                ? throwable.getCause()
+                : throwable;
+        ReloadStat stat = ReloadStat.failure(
+                System.currentTimeMillis(),
+                nanosToMillis(startedAt, System.nanoTime()),
+                cause.getClass().getSimpleName() + ": " + cause.getMessage()
+        );
+        STATS.put(scope, stat);
+        ClientToastService.showReloadResult(scope, stat);
+        LOGGER.error("Failed to reload {} shaders", scope.logName, cause);
     }
 
     public enum ReloadScope {

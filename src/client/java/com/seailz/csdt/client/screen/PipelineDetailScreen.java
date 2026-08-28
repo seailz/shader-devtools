@@ -126,23 +126,28 @@ public final class PipelineDetailScreen extends Screen {
         int y = top + 8;
         int end = Math.min(this.rows.size(), this.scrollRows + visibleRowCount() + 2);
 
-        guiGraphics.enableScissor(innerLeft, top + 4, innerLeft + width - 8, top + height - 4);
-        for (int i = this.scrollRows; i < end; i++) {
-            Row row = this.rows.get(i);
-            if (row.isSeparator()) {
-                guiGraphics.horizontalLine(innerLeft, innerLeft + width - 24, y + 4, 0x55445A6B);
-                y += 8;
-                continue;
-            }
-            if (y + LINE_HEIGHT >= top) {
-                guiGraphics.text(this.font, row.text(), innerLeft + row.indent() * 12, y, row.color(), false);
-            }
-            y += LINE_HEIGHT;
-            if (y > top + height) {
-                break;
-            }
+        if (!ScreenScissor.enableIfNonEmpty(guiGraphics, innerLeft, top + 4, innerLeft + width - 8, top + height - 4)) {
+            return;
         }
-        guiGraphics.disableScissor();
+        try {
+            for (int i = this.scrollRows; i < end; i++) {
+                Row row = this.rows.get(i);
+                if (row.isSeparator()) {
+                    guiGraphics.horizontalLine(innerLeft, innerLeft + width - 24, y + 4, 0x55445A6B);
+                    y += 8;
+                    continue;
+                }
+                if (y + LINE_HEIGHT >= top) {
+                    guiGraphics.text(this.font, row.text(), innerLeft + row.indent() * 12, y, row.color(), false);
+                }
+                y += LINE_HEIGHT;
+                if (y > top + height) {
+                    break;
+                }
+            }
+        } finally {
+            guiGraphics.disableScissor();
+        }
     }
 
     private void renderCard(GuiGraphicsExtractor guiGraphics, int x, int y, int width, String title, String value, int accent) {

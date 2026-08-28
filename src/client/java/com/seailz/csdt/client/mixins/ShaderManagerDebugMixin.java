@@ -4,11 +4,11 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.renderpearl.api.pipeline.ShaderType;
 import com.mojang.logging.LogUtils;
 import com.seailz.csdt.client.service.ShaderDebugSourceService;
+import com.seailz.csdt.client.service.ShaderResourceOverrideService;
 import net.minecraft.client.renderer.ShaderManager;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.profiling.ProfilerFiller;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
@@ -28,9 +28,14 @@ public abstract class ShaderManagerDebugMixin {
 
     private static final Logger CSDT_LOGGER = LogUtils.getLogger();
 
-    @Inject(method = "prepare", at = @At("HEAD"))
-    private void csdt$beginShaderDebugReload(ResourceManager manager, ProfilerFiller profiler, CallbackInfoReturnable<ShaderManager.Configs> cir) {
+    @Inject(method = "loadConfigs", at = @At("HEAD"))
+    private void csdt$beginShaderDebugReload(ResourceManager manager, CallbackInfoReturnable<ShaderManager.Configs> cir) {
         ShaderDebugSourceService.beginReload();
+    }
+
+    @Inject(method = "loadConfigs", at = @At("RETURN"), cancellable = true)
+    private void csdt$applyShaderOverrides(ResourceManager manager, CallbackInfoReturnable<ShaderManager.Configs> cir) {
+        cir.setReturnValue(ShaderResourceOverrideService.applyOverrides(cir.getReturnValue(), manager));
     }
 
     @Inject(

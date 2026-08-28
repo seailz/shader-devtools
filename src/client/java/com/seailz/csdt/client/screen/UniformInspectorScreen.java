@@ -195,26 +195,30 @@ public final class UniformInspectorScreen extends Screen {
         int contentTop = top + 44;
         int y = contentTop;
         int end = Math.min(rows.size(), this.detailScrollRows + visibleDetailRows() + 2);
-        guiGraphics.enableScissor(left + 10, contentTop - 2, left + width - 10, this.height - 48);
-        for (int i = this.detailScrollRows; i < end; i++) {
-            Row row = rows.get(i);
-            if (row.isSeparator()) {
-                guiGraphics.horizontalLine(left + 12, left + width - 18, y + 4, 0x55445A6B);
-                y += 8;
-                continue;
-            }
-            if (y + LINE_HEIGHT >= contentTop) {
-                if (row.valueKey() != null && row.valueKey().equals(this.expandedValueKey)) {
-                    guiGraphics.fill(left + 10, y - 1, left + width - 10, y + LINE_HEIGHT, 0x224CC9F0);
+        if (ScreenScissor.enableIfNonEmpty(guiGraphics, left + 10, contentTop - 2, left + width - 10, this.height - 48)) {
+            try {
+                for (int i = this.detailScrollRows; i < end; i++) {
+                    Row row = rows.get(i);
+                    if (row.isSeparator()) {
+                        guiGraphics.horizontalLine(left + 12, left + width - 18, y + 4, 0x55445A6B);
+                        y += 8;
+                        continue;
+                    }
+                    if (y + LINE_HEIGHT >= contentTop) {
+                        if (row.valueKey() != null && row.valueKey().equals(this.expandedValueKey)) {
+                            guiGraphics.fill(left + 10, y - 1, left + width - 10, y + LINE_HEIGHT, 0x224CC9F0);
+                        }
+                        guiGraphics.text(this.font, Component.literal(trimToWidth(row.text(), width - 26 - row.indent() * 12)), left + 12 + row.indent() * 12, y, row.color(), false);
+                    }
+                    y += LINE_HEIGHT;
+                    if (y > this.height - 48) {
+                        break;
+                    }
                 }
-                guiGraphics.text(this.font, Component.literal(trimToWidth(row.text(), width - 26 - row.indent() * 12)), left + 12 + row.indent() * 12, y, row.color(), false);
-            }
-            y += LINE_HEIGHT;
-            if (y > this.height - 48) {
-                break;
+            } finally {
+                guiGraphics.disableScissor();
             }
         }
-        guiGraphics.disableScissor();
 
         String age = formatAge(System.currentTimeMillis() - selected.updatedAtMillis());
         int updatedCounterY = this.height - 46 - this.font.lineHeight / 2 - 16;

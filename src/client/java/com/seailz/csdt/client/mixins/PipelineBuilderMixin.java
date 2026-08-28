@@ -5,11 +5,14 @@ import com.mojang.renderpearl.api.pipeline.CompiledRenderPipeline;
 import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import com.mojang.renderpearl.api.pipeline.ShaderSource;
 import com.mojang.renderpearl.api.pipeline.UniformType;
+import com.mojang.renderpearl.backend.api.BackendRenderPipeline;
 import com.mojang.renderpearl.backend.api.GpuDeviceBackend;
 import com.mojang.renderpearl.backend.api.SpvModule;
 import com.mojang.renderpearl.frontend.shaders.PipelineBuilder;
 import com.seailz.csdt.client.service.CompiledPipelineRegistry;
 import com.seailz.csdt.client.service.ShaderDebugPipelineService;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -19,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
+import java.util.concurrent.Executor;
 
 @Mixin(PipelineBuilder.class)
 public abstract class PipelineBuilderMixin {
@@ -27,17 +31,19 @@ public abstract class PipelineBuilderMixin {
     @Final
     private GpuDeviceBackend backendDevice;
 
-    @Inject(method = "compilePipeline", at = @At("HEAD"))
+    @Inject(method = "generateBackendCreateInfo", at = @At("HEAD"))
     private void csdt$beginShaderDebugPipeline(
             RenderPipeline sourcePipeline,
             ShaderSource shaderSource,
-            CallbackInfoReturnable<CompiledRenderPipeline> cir
+            ReferenceArrayList<BackendRenderPipeline.CreateInfo.Shader> shaders,
+            Object2IntOpenHashMap<String> uniformIndices,
+            CallbackInfoReturnable<BackendRenderPipeline.CreateInfo> cir
     ) {
         ShaderDebugPipelineService.beginCompile(this.backendDevice, sourcePipeline, shaderSource);
     }
 
     @Redirect(
-            method = "compilePipeline",
+            method = "generateBackendCreateInfo",
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/mojang/renderpearl/api/pipeline/RenderPipeline;getBindGroupLayouts()Ljava/util/List;"
@@ -48,7 +54,7 @@ public abstract class PipelineBuilderMixin {
     }
 
     @Redirect(
-            method = "compilePipeline",
+            method = "generateBackendCreateInfo",
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/mojang/renderpearl/backend/api/SpvModule$Reflection;descriptors()Ljava/util/List;"
@@ -59,7 +65,7 @@ public abstract class PipelineBuilderMixin {
     }
 
     @Redirect(
-            method = "compilePipeline",
+            method = "generateBackendCreateInfo",
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/mojang/renderpearl/api/pipeline/BindGroupLayout$UniformDescription;type()Lcom/mojang/renderpearl/api/pipeline/UniformType;",
@@ -71,7 +77,7 @@ public abstract class PipelineBuilderMixin {
     }
 
     @Redirect(
-            method = "compilePipeline",
+            method = "generateBackendCreateInfo",
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/mojang/renderpearl/frontend/shaders/SpvUtil;resourceType(Lcom/mojang/renderpearl/api/pipeline/UniformType;)I"
@@ -82,7 +88,7 @@ public abstract class PipelineBuilderMixin {
     }
 
     @Redirect(
-            method = "compilePipeline",
+            method = "generateBackendCreateInfo",
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/mojang/renderpearl/backend/api/SpvModule$Reflection$Descriptor;binding(I)V"
@@ -92,16 +98,26 @@ public abstract class PipelineBuilderMixin {
         descriptor.binding(ShaderDebugPipelineService.bindingFor(descriptor, binding));
     }
 
-    @Inject(method = "compilePipeline", at = @At("RETURN"))
-    private void csdt$rememberSourcePipeline(
+    @Inject(method = "generateBackendCreateInfo", at = @At("RETURN"))
+    private void csdt$finishShaderDebugPipeline(
             RenderPipeline sourcePipeline,
             ShaderSource shaderSource,
+            ReferenceArrayList<BackendRenderPipeline.CreateInfo.Shader> shaders,
+            Object2IntOpenHashMap<String> uniformIndices,
+            CallbackInfoReturnable<BackendRenderPipeline.CreateInfo> cir
+    ) {
+        ShaderDebugPipelineService.finishCompile();
+    }
+
+    @Inject(method = "lambda$compilePipeline$1", at = @At("RETURN"))
+    private static void csdt$rememberSourcePipeline(
+            RenderPipeline sourcePipeline,
+            BackendRenderPipeline.Pending pendingPipeline,
+            Executor executor,
+            ReferenceArrayList<?> shaders,
+            Object2IntOpenHashMap<String> uniformIndices,
             CallbackInfoReturnable<CompiledRenderPipeline> cir
     ) {
-        try {
-            CompiledPipelineRegistry.remember(cir.getReturnValue(), sourcePipeline);
-        } finally {
-            ShaderDebugPipelineService.finishCompile();
-        }
+        CompiledPipelineRegistry.remember(cir.getReturnValue(), sourcePipeline);
     }
 }
