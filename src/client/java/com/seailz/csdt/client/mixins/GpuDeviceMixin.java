@@ -25,15 +25,16 @@ public abstract class GpuDeviceMixin {
         UniformInspectorService.recordCreatedBuffer(cir.getReturnValue(), source);
     }
 
-    // Sampler inspection needs transfer-source access; vanilla lightmap is otherwise created write/bind-only.
+    // Sampler inspection needs transfer-source access for the lightmap. Applying this flag to every
+    // texture causes Snapshot 10's backend to create invalid atlas resources.
     @ModifyVariable(
             method = "createTexture(Ljava/lang/String;ILcom/mojang/renderpearl/api/GpuFormat;IIII)Lcom/mojang/renderpearl/api/textures/GpuTexture;",
             at = @At("HEAD"),
             argsOnly = true,
             ordinal = 0
     )
-    private int csdt$allowNamedTextureReadback(int usage) {
-        return usage | GpuTexture.USAGE_COPY_SRC;
+    private int csdt$allowNamedTextureReadback(int usage, String label) {
+        return "Lightmap".equals(label) ? usage | GpuTexture.USAGE_COPY_SRC : usage;
     }
 
 }
