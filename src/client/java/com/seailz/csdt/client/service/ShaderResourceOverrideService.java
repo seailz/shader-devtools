@@ -103,7 +103,7 @@ public final class ShaderResourceOverrideService {
             }
         }
 
-        return new ShaderManager.Configs((Map) shaderSources, postChains);
+        return new ShaderManager.Configs((Map) shaderSources, configs.includeSources(), postChains);
     }
 
     private static ShaderInventoryService.ShaderResourceVersion selectVersion(ResourceManager resourceManager, Identifier location, String preferredPack) {

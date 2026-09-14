@@ -83,7 +83,7 @@ public final class ShaderDebugPipelineService {
 
     private static boolean hasDebugBuffer(RenderPipeline pipeline, ShaderSource shaderSource) {
         for (Map.Entry<com.mojang.renderpearl.api.pipeline.ShaderType, net.minecraft.resources.Identifier> entry : pipeline.getShaders().entrySet()) {
-            String source = shaderSource.get(entry.getValue(), entry.getKey());
+            String source = shaderSource.getShader(entry.getValue(), entry.getKey());
             if (source != null && source.contains(ShaderDebugSourceService.DEBUG_BUFFER_NAME)) {
                 return true;
             }

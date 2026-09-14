@@ -21,7 +21,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 
 @Mixin(ShaderManager.class)
 public abstract class ShaderManagerDebugMixin {
@@ -29,12 +28,12 @@ public abstract class ShaderManagerDebugMixin {
     private static final Logger CSDT_LOGGER = LogUtils.getLogger();
 
     @Inject(method = "loadConfigs", at = @At("HEAD"))
-    private void csdt$beginShaderDebugReload(ResourceManager manager, CallbackInfoReturnable<ShaderManager.Configs> cir) {
+    private static void csdt$beginShaderDebugReload(ResourceManager manager, CallbackInfoReturnable<ShaderManager.Configs> cir) {
         ShaderDebugSourceService.beginReload();
     }
 
     @Inject(method = "loadConfigs", at = @At("RETURN"), cancellable = true)
-    private void csdt$applyShaderOverrides(ResourceManager manager, CallbackInfoReturnable<ShaderManager.Configs> cir) {
+    private static void csdt$applyShaderOverrides(ResourceManager manager, CallbackInfoReturnable<ShaderManager.Configs> cir) {
         cir.setReturnValue(ShaderResourceOverrideService.applyOverrides(cir.getReturnValue(), manager));
     }
 
@@ -47,7 +46,6 @@ public abstract class ShaderManagerDebugMixin {
             Identifier location,
             Resource resource,
             ShaderType type,
-            Map<Identifier, Resource> files,
             ImmutableMap.Builder<?, ?> output,
             CallbackInfo ci
     ) {
