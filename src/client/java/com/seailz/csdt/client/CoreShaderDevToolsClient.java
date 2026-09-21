@@ -1,6 +1,7 @@
 package com.seailz.csdt.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.logging.LogUtils;
 import com.seailz.csdt.client.screen.ShaderDevToolsScreen;
 import com.seailz.csdt.client.service.ForcedPostEffectService;
 import com.seailz.csdt.client.service.McpControlServerService;
@@ -14,11 +15,21 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.Identifier;
+import org.slf4j.Logger;
 
 public class CoreShaderDevToolsClient implements ClientModInitializer {
 
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final String GUI_SMOKE_PROPERTY = "csdt.smoke.openMenu";
+    private static final int GUI_SMOKE_TIMEOUT_TICKS = 1_800;
+    private static final int GUI_SMOKE_SETTLE_TICKS = 20;
+
     private static KeyMapping reloadCoreShadersKey;
     private static KeyMapping openShaderDevToolsMenuKey;
+    private static boolean guiSmokeMenuOpened;
+    private static boolean guiSmokeMenuRendered;
+    private static int guiSmokeTicks;
+    private static int guiSmokeRenderedTicks;
 
     @Override
     public void onInitializeClient() {
@@ -53,6 +64,10 @@ public class CoreShaderDevToolsClient implements ClientModInitializer {
     }
 
     public static void onEndClientTick(Minecraft client) {
+        if (Boolean.getBoolean(GUI_SMOKE_PROPERTY)) {
+            runGuiSmokeTest(client);
+        }
+
         while (reloadCoreShadersKey.consumeClick()) {
             ShaderReloadService.reloadCoreShadersOnly();
         }
@@ -62,6 +77,40 @@ public class CoreShaderDevToolsClient implements ClientModInitializer {
         }
 
         ForcedPostEffectService.applyForcedPostEffect();
+    }
+
+    public static void onShaderDevToolsMenuRendered() {
+        if (Boolean.getBoolean(GUI_SMOKE_PROPERTY)) {
+            guiSmokeMenuRendered = true;
+        }
+    }
+
+    private static void runGuiSmokeTest(Minecraft client) {
+        guiSmokeTicks++;
+
+        if (!guiSmokeMenuRendered
+                && (client.level != null || client.gui.screen() != null)
+                && !(client.gui.screen() instanceof ShaderDevToolsScreen)) {
+            if (!guiSmokeMenuOpened) {
+                LOGGER.info("GUI smoke test opening the Shader DevTools menu.");
+            }
+            guiSmokeMenuOpened = true;
+            openShaderDevToolsMenu(client, client.gui.screen());
+        }
+
+        if (guiSmokeMenuRendered) {
+            guiSmokeRenderedTicks++;
+            if (guiSmokeRenderedTicks >= GUI_SMOKE_SETTLE_TICKS) {
+                LOGGER.info("GUI smoke test passed: Shader DevTools menu rendered for {} client ticks.", GUI_SMOKE_SETTLE_TICKS);
+                client.stop();
+            }
+            return;
+        }
+
+        if (guiSmokeTicks >= GUI_SMOKE_TIMEOUT_TICKS) {
+            LOGGER.error("GUI smoke test failed: Shader DevTools menu did not render within {} client ticks.", GUI_SMOKE_TIMEOUT_TICKS);
+            client.stop();
+        }
     }
 
     private static void openShaderDevToolsMenu(Minecraft client, Screen parent) {

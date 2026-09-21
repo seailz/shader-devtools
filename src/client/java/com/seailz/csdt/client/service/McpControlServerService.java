@@ -59,6 +59,21 @@ public final class McpControlServerService {
         }
     }
 
+    public static synchronized void stop() {
+        if (server == null) {
+            return;
+        }
+
+        try {
+            server.stop(0);
+            LOGGER.info("Shader DevTools MCP control server stopped.");
+        } catch (Exception exception) {
+            LOGGER.error("Failed to stop Shader DevTools MCP control server", exception);
+        } finally {
+            server = null;
+        }
+    }
+
     private static void handle(HttpExchange exchange, Handler handler) throws IOException {
         try {
             handler.handle(exchange);

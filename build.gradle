@@ -79,6 +79,13 @@ tasks.withType(JavaCompile).configureEach {
     }
 }
 
+tasks.named("runClient") {
+    if (project.hasProperty("csdtGuiSmoke")) {
+        systemProperty "csdt.smoke.openMenu", "true"
+        args "--graphicsBackend", "VULKAN"
+    }
+}
+
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
     if (JavaVersion.current() < javaVersion) {
