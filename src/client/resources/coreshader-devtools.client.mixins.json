@@ -12,6 +12,7 @@
     "GlCommandEncoderMixin",
     "GpuDeviceMixin",
     "MinecraftClientMixin",
+    "PipelineCacheMixin",
     "PipelineBuilderMixin",
     "RenderPassMixin",
     "ShaderManagerDebugMixin",

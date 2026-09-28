@@ -1,7 +1,6 @@
 package com.seailz.csdt.client.mixins;
 
-import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
-import com.mojang.renderpearl.backend.api.BackendRenderPipeline;
+import com.mojang.renderpearl.api.pipeline.CompiledRenderPipeline;
 import com.mojang.renderpearl.backend.vulkan.VulkanDevice;
 import com.mojang.renderpearl.backend.vulkan.VulkanRenderPipeline;
 import com.seailz.csdt.client.service.ShaderDebugSourceService;
@@ -28,7 +27,7 @@ public abstract class VulkanRenderPipelineMixin {
     )
     private static Object csdt$trackDebugUniform(List<?> uniforms, int index) {
         Object uniform = uniforms.get(index);
-        CSDT_DEBUG_UNIFORM.set(uniform instanceof BindGroupLayout.UniformDescription description
+        CSDT_DEBUG_UNIFORM.set(uniform instanceof CompiledRenderPipeline.CreateInfo.Uniform description
                 && ShaderDebugSourceService.DEBUG_BUFFER_NAME.equals(description.name()));
         return uniform;
     }
@@ -68,7 +67,7 @@ public abstract class VulkanRenderPipelineMixin {
     @Inject(method = "compile", at = @At("RETURN"))
     private static void csdt$clearDebugUniform(
             VulkanDevice device,
-            BackendRenderPipeline.CreateInfo createInfo,
+            CompiledRenderPipeline.CreateInfo createInfo,
             CallbackInfoReturnable<VulkanRenderPipeline> cir
     ) {
         CSDT_DEBUG_UNIFORM.remove();

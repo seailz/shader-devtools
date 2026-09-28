@@ -1,7 +1,7 @@
 package com.seailz.csdt.client.service;
 
 import com.mojang.renderpearl.api.pipeline.CompiledRenderPipeline;
-import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;

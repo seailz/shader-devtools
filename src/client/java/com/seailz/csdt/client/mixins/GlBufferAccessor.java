@@ -1,10 +1,9 @@
 package com.seailz.csdt.client.mixins;
 
-import com.mojang.renderpearl.backend.opengl.GlBuffer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(GlBuffer.class)
+@Mixin(targets = "com.mojang.renderpearl.backend.opengl.GlBuffer")
 public interface GlBufferAccessor {
 
     @Accessor("handle")

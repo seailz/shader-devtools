@@ -1,7 +1,7 @@
 package com.seailz.csdt.client.mixins;
 
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
-import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
+import com.mojang.renderpearl.api.pipeline.CompiledRenderPipeline;
 import com.mojang.renderpearl.backend.api.BackendRenderPipeline;
 import com.mojang.renderpearl.backend.vulkan.VulkanRenderPass;
 import com.mojang.renderpearl.backend.vulkan.VulkanRenderPipeline;
@@ -55,7 +55,7 @@ public abstract class VulkanRenderPassMixin {
     )
     private Object csdt$trackDebugUniform(List<?> uniforms, int index) {
         Object uniform = uniforms.get(index);
-        CSDT_DEBUG_UNIFORM.set(uniform instanceof BindGroupLayout.UniformDescription description
+        CSDT_DEBUG_UNIFORM.set(uniform instanceof CompiledRenderPipeline.CreateInfo.Uniform description
                 && ShaderDebugSourceService.DEBUG_BUFFER_NAME.equals(description.name()));
         return uniform;
     }
@@ -97,7 +97,7 @@ public abstract class VulkanRenderPassMixin {
             return;
         }
 
-        List<BindGroupLayout.UniformDescription> pipelineUniforms = this.pipeline.uniforms();
+        List<CompiledRenderPipeline.CreateInfo.Uniform> pipelineUniforms = this.pipeline.uniforms();
         for (int index = 0; index < pipelineUniforms.size(); index++) {
             if (!ShaderDebugSourceService.DEBUG_BUFFER_NAME.equals(pipelineUniforms.get(index).name())) {
                 continue;

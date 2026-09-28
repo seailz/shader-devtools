@@ -1,8 +1,8 @@
 package com.seailz.csdt.client.mixins;
 
 import com.mojang.renderpearl.api.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.renderpearl.api.pipeline.CompiledRenderPipeline;
-import com.mojang.renderpearl.api.pipeline.RenderPipeline;
 import com.mojang.renderpearl.api.textures.GpuSampler;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
 import com.mojang.renderpearl.backend.api.GpuDeviceBackend;
@@ -85,7 +85,7 @@ public abstract class RenderPassMixin {
         return this.boundPipeline == null ? null : CompiledPipelineRegistry.sourceFor(this.boundPipeline);
     }
 
-    private boolean csdt$isDebugUniform(com.mojang.renderpearl.api.pipeline.BindGroupLayout.UniformDescription uniform) {
+    private boolean csdt$isDebugUniform(CompiledRenderPipeline.CreateInfo.Uniform uniform) {
         return ShaderDebugSourceService.DEBUG_BUFFER_NAME.equals(uniform.name());
     }
 }

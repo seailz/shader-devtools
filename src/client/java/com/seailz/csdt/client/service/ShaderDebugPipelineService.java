@@ -1,12 +1,11 @@
 package com.seailz.csdt.client.service;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.pipeline.ShaderSource;
+import com.mojang.renderpearl.api.device.GpuDevice;
 import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
-import com.mojang.renderpearl.api.pipeline.RenderPipeline;
-import com.mojang.renderpearl.api.pipeline.ShaderSource;
+import com.mojang.renderpearl.api.pipeline.SpvModule;
 import com.mojang.renderpearl.api.pipeline.UniformType;
-import com.mojang.renderpearl.backend.api.GpuDeviceBackend;
-import com.mojang.renderpearl.backend.api.SpvModule;
-import com.mojang.renderpearl.frontend.shaders.SpvUtil;
 import org.lwjgl.util.spvc.Spvc;
 
 import java.util.ArrayList;
@@ -17,19 +16,16 @@ import java.util.Map;
 public final class ShaderDebugPipelineService {
 
     private static final ThreadLocal<CompileState> COMPILE_STATE = new ThreadLocal<>();
-    private static final ThreadLocal<Boolean> VALIDATING_DEBUG_UNIFORM = new ThreadLocal<>();
 
     private ShaderDebugPipelineService() {
     }
 
-    public static void beginCompile(GpuDeviceBackend device, RenderPipeline pipeline, ShaderSource shaderSource) {
+    public static void beginCompile(GpuDevice device, RenderPipeline pipeline, ShaderSource shaderSource) {
         COMPILE_STATE.set(new CompileState(backendFor(device), hasDebugBuffer(pipeline, shaderSource)));
-        VALIDATING_DEBUG_UNIFORM.remove();
     }
 
     public static void finishCompile() {
         COMPILE_STATE.remove();
-        VALIDATING_DEBUG_UNIFORM.remove();
     }
 
     public static List<BindGroupLayout> withDebugLayout(List<BindGroupLayout> layouts) {
@@ -54,20 +50,11 @@ public final class ShaderDebugPipelineService {
                 .toList();
     }
 
-    public static UniformType markUniformForValidation(BindGroupLayout.UniformDescription uniform) {
-        VALIDATING_DEBUG_UNIFORM.set(isVulkanDebugPipeline()
-                && ShaderDebugSourceService.DEBUG_BUFFER_NAME.equals(uniform.name()));
-        return uniform.type();
-    }
-
-    public static int resourceTypeForCurrentUniform(UniformType uniformType) {
-        try {
-            return Boolean.TRUE.equals(VALIDATING_DEBUG_UNIFORM.get())
-                    ? Spvc.SPVC_RESOURCE_TYPE_STORAGE_BUFFER
-                    : SpvUtil.resourceType(uniformType);
-        } finally {
-            VALIDATING_DEBUG_UNIFORM.remove();
-        }
+    public static int resourceTypeFor(SpvModule.Reflection.Descriptor descriptor) {
+        return isVulkanDebugPipeline()
+                && ShaderDebugSourceService.DEBUG_BUFFER_NAME.equals(descriptor.name())
+                ? Spvc.SPVC_RESOURCE_TYPE_STORAGE_BUFFER
+                : descriptor.resourceType();
     }
 
     public static int bindingFor(SpvModule.Reflection.Descriptor descriptor, int binding) {
@@ -91,7 +78,7 @@ public final class ShaderDebugPipelineService {
         return false;
     }
 
-    private static Backend backendFor(GpuDeviceBackend device) {
+    private static Backend backendFor(GpuDevice device) {
         String backendName = device.getDeviceInfo().backendName().toLowerCase(Locale.ROOT);
         if (backendName.contains("vulkan")) {
             return Backend.VULKAN;
