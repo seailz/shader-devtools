@@ -407,26 +407,26 @@ public final class ShaderResourceDetailScreen extends Screen {
             this.useSourceButton.setMessage(Component.literal(usingCurrentSource ? "Reset Source" : "Use This Source"));
         }
         if (this.createOverrideButton != null) {
-            this.createOverrideButton.visible = !hasMultipleSources();
+            this.createOverrideButton.setVisible(!hasMultipleSources());
             this.createOverrideButton.active = !hasMultipleSources();
         }
 
         boolean fragmentShader = isFragmentShader();
-        this.visualizeButton.visible = fragmentShader;
+        this.visualizeButton.setVisible(fragmentShader);
         this.visualizeButton.active = fragmentShader;
         if (fragmentShader) {
             this.visualizeButton.setMessage(Component.literal(ShaderResourceOverrideService.isVisualized(this.entry.path()) ? "Stop Visualization" : "Visualize"));
         }
 
         boolean postEffect = isPostEffect();
-        this.forcePostEffectButton.visible = postEffect;
+        this.forcePostEffectButton.setVisible(postEffect);
         this.forcePostEffectButton.active = postEffect;
         if (postEffect) {
             this.forcePostEffectButton.setMessage(Component.literal(ForcedPostEffectService.isForced(this.entry.path()) ? "Release Effect" : "Force On"));
         }
 
         this.saveButton.active = canEditCurrentVersion();
-        this.deleteButton.visible = canDeleteCurrentVersion();
+        this.deleteButton.setVisible(canDeleteCurrentVersion());
         this.deleteButton.active = canDeleteCurrentVersion();
     }
 

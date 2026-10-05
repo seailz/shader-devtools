@@ -5,7 +5,7 @@ import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.renderpearl.api.pipeline.CompiledRenderPipeline;
 import com.mojang.renderpearl.api.textures.GpuSampler;
 import com.mojang.renderpearl.api.textures.GpuTextureView;
-import com.mojang.renderpearl.backend.api.GpuDeviceBackend;
+import com.mojang.renderpearl.frontend.FrontendGpuDevice;
 import com.mojang.renderpearl.frontend.FrontendRenderPass;
 import com.mojang.renderpearl.frontend.FrontendRenderPipeline;
 import com.seailz.csdt.client.service.CompiledPipelineRegistry;
@@ -27,7 +27,7 @@ public abstract class RenderPassMixin {
 
     @Shadow
     @Final
-    private GpuDeviceBackend device;
+    private FrontendGpuDevice device;
 
     @Shadow
     private FrontendRenderPipeline boundPipeline;

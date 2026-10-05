@@ -184,8 +184,7 @@ public final class SamplerInspectionService {
                     byteCount
             );
             CommandEncoder encoder = device.createCommandEncoder();
-            encoder.copyTextureToBuffer(texture, buffer, 0L, () -> {
-            }, mip, safeX, safeY, width, height);
+            encoder.copyTextureToBuffer(texture, buffer, 0L, mip, safeX, safeY, width, height);
             try (GpuFence fence = encoder.createFence()) {
                 encoder.submit();
                 if (!fence.awaitCompletion(READBACK_TIMEOUT_NANOS)) {

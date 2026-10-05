@@ -87,7 +87,7 @@ public final class ShaderResourceOverrideService {
                 continue;
             }
 
-            ShaderType shaderType = ShaderType.byLocation(location);
+            ShaderType shaderType = shaderTypeByLocation(location);
             if (shaderType == null) {
                 continue;
             }
@@ -97,7 +97,7 @@ public final class ShaderResourceOverrideService {
                 if (VISUALIZED_FRAGMENT_SHADERS.contains(resourcePath) && shaderType == ShaderType.FRAGMENT) {
                     source = visualizeFragmentShader(source);
                 }
-                shaderSources.put(shaderSourceKey(shaderType.idConverter().fileToId(location), shaderType), source);
+                shaderSources.put(shaderSourceKey(shaderLocationToId(location, shaderType), shaderType), source);
             } catch (IOException exception) {
                 LOGGER.error("Failed to load shader override at {}", location, exception);
             }
@@ -134,8 +134,21 @@ public final class ShaderResourceOverrideService {
 
     private static String loadShaderSource(Identifier location, ShaderInventoryService.ShaderResourceVersion version) throws IOException {
         String source = ShaderInventoryService.loadText(version);
-        ShaderType shaderType = ShaderType.byLocation(location);
+        ShaderType shaderType = shaderTypeByLocation(location);
         return shaderType == null ? source : ShaderDebugSourceService.transformShaderSource(location, shaderType, source);
+    }
+
+    private static ShaderType shaderTypeByLocation(Identifier location) {
+        for (ShaderType type : ShaderType.values()) {
+            if (location.getPath().endsWith(type.getExtension())) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    private static Identifier shaderLocationToId(Identifier location, ShaderType type) {
+        return new FileToIdConverter("shaders", type.getExtension()).fileToId(location);
     }
 
     private static Object shaderSourceKey(Identifier id, ShaderType shaderType) {

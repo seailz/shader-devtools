@@ -6,6 +6,7 @@ import com.mojang.logging.LogUtils;
 import com.seailz.csdt.client.service.ShaderDebugSourceService;
 import com.seailz.csdt.client.service.ShaderResourceOverrideService;
 import net.minecraft.client.renderer.ShaderManager;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -49,7 +50,7 @@ public abstract class ShaderManagerDebugMixin {
             ImmutableMap.Builder<?, ?> output,
             CallbackInfo ci
     ) {
-        Identifier id = type == null ? location : type.idConverter().fileToId(location);
+        Identifier id = type == null ? location : shaderLocationToId(location, type);
         try (BufferedReader reader = resource.openAsReader()) {
             String source = IOUtils.toString(reader);
             ((ImmutableMap.Builder) output).put(
@@ -72,5 +73,9 @@ public abstract class ShaderManagerDebugMixin {
                  InvocationTargetException exception) {
             throw new IllegalStateException("Failed to create ShaderSourceKey", exception);
         }
+    }
+
+    private static Identifier shaderLocationToId(Identifier location, ShaderType type) {
+        return new FileToIdConverter("shaders", type.getExtension()).fileToId(location);
     }
 }

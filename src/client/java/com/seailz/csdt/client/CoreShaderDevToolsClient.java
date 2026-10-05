@@ -89,6 +89,7 @@ public class CoreShaderDevToolsClient implements ClientModInitializer {
         guiSmokeTicks++;
 
         if (!guiSmokeMenuRendered
+                && client.isGameLoadFinished()
                 && (client.level != null || client.gui.screen() != null)
                 && !(client.gui.screen() instanceof ShaderDevToolsScreen)) {
             if (!guiSmokeMenuOpened) {

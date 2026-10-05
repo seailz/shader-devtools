@@ -161,7 +161,7 @@ public final class ShaderInventoryScreen extends Screen {
         for (int i = 0; i < this.entryButtons.size(); i++) {
             Button button = this.entryButtons.get(i);
             boolean visible = i < this.visibleEntries.size();
-            button.visible = visible;
+            button.setVisible(visible);
             button.active = visible;
             if (visible) {
                 button.setMessage(Component.empty());

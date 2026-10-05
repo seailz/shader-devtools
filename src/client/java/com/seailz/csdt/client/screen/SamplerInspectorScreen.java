@@ -176,7 +176,7 @@ public final class SamplerInspectorScreen extends Screen {
         for (int i = 0; i < this.entryButtons.size(); i++) {
             Button button = this.entryButtons.get(i);
             boolean visible = i < this.visibleListEntries.size();
-            button.visible = visible;
+            button.setVisible(visible);
             button.active = visible;
             if (visible) {
                 button.setMessage(Component.empty());
@@ -185,7 +185,7 @@ public final class SamplerInspectorScreen extends Screen {
 
         this.previousPageButton.active = this.page > 0;
         this.nextPageButton.active = this.page + 1 < totalPages(listEntries.size());
-        this.groupBackButton.visible = this.selectedGroupKey != null;
+        this.groupBackButton.setVisible(this.selectedGroupKey != null);
         this.groupBackButton.active = this.selectedGroupKey != null;
     }
 
