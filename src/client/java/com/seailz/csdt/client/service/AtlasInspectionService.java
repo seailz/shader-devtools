@@ -1,7 +1,6 @@
 package com.seailz.csdt.client.service;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.Identifier;
@@ -23,17 +22,13 @@ public final class AtlasInspectionService {
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.execute(() -> {
             try {
-                AbstractTexture texture = minecraft.getTextureManager()
-                        .getTexture(TextureAtlas.LOCATION_BLOCKS);
-                if (!(texture instanceof TextureAtlas atlas)) {
-                    throw new IllegalStateException("Block atlas texture has unexpected type: "
-                            + texture.getClass().getName());
-                }
+                TextureAtlas atlas = minecraft.getAtlasManager()
+                        .getAtlasOrThrow(TextureAtlas.LOCATION_BLOCKS);
 
                 Identifier id = Identifier.parse(spriteId);
                 TextureAtlasSprite sprite = atlas.getSprite(id);
-                int atlasWidth = atlas.getTexture().getWidth(0);
-                int atlasHeight = atlas.getTexture().getHeight(0);
+                int atlasWidth = atlas.getTexture().texture().getWidth(0);
+                int atlasHeight = atlas.getTexture().texture().getHeight(0);
                 result.complete(new Result(
                         id.toString(),
                         atlasWidth,
