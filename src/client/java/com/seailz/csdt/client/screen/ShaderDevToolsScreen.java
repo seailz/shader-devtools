@@ -112,9 +112,9 @@ public final class ShaderDevToolsScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics) {
         guiGraphics.fill(0, 0, this.width, this.height, 0xB010141A);
-        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(guiGraphics);
 
         guiGraphics.centeredText(this.font, this.title, this.width / 2, 12, 0xFFFFFFFF);
 

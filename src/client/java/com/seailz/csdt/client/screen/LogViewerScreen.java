@@ -110,10 +110,10 @@ public final class LogViewerScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics) {
         guiGraphics.fill(0, 0, this.width, this.height, 0xB010141A);
         renderPanels(guiGraphics);
-        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(guiGraphics);
 
         guiGraphics.centeredText(this.font, this.title, this.width / 2, 14, 0xFFFFFFFF);
         guiGraphics.centeredText(this.font, Component.literal(this.status), this.width / 2, 30, 0xFFA8C2D8);

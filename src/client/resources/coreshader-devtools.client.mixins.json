@@ -15,6 +15,7 @@
     "PipelineCacheMixin",
     "PipelineBuilderMixin",
     "RenderPassMixin",
+    "RenderPipelinesAccessor",
     "ShaderManagerDebugMixin",
     "VulkanConstMixin",
     "VulkanRenderPassMixin",

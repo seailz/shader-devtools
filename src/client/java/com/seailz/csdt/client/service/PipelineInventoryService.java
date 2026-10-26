@@ -4,7 +4,8 @@ import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.renderpearl.api.pipeline.ShaderType;
 import com.mojang.renderpearl.api.pipeline.UniformType;
-import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.pipeline.RenderPipelines;
+import com.seailz.csdt.client.mixins.RenderPipelinesAccessor;
 
 import java.util.Comparator;
 import java.util.List;
@@ -16,7 +17,9 @@ public final class PipelineInventoryService {
     }
 
     public static List<PipelineEntry> listPipelines() {
-        return Stream.concat(RenderPipelines.requiredPipelines().stream(), RenderPipelines.optionalPipelines().stream())
+        return Stream.concat(RenderPipelines.staticPipelinesToPrecompile().stream(),
+                        RenderPipelinesAccessor.csdt$getDynamicPipelines().values().stream())
+                .distinct()
                 .sorted(Comparator.comparing(pipeline -> pipeline.getLocation().toString()))
                 .map(PipelineEntry::new)
                 .toList();

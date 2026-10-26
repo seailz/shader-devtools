@@ -127,11 +127,11 @@ public final class UniformInspectorScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics) {
         this.refreshView();
         guiGraphics.fill(0, 0, this.width, this.height, 0xB010141A);
         renderPanels(guiGraphics);
-        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(guiGraphics);
 
         List<UniformInspectorService.UniformSnapshot> entries = filteredEntries();
         int totalPages = totalPages(entries.size());

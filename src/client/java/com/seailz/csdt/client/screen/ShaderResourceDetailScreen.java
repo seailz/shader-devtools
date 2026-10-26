@@ -176,10 +176,10 @@ public final class ShaderResourceDetailScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics) {
         guiGraphics.fill(0, 0, this.width, this.height, 0xB010141A);
         renderEditorChrome(guiGraphics);
-        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(guiGraphics);
 
         guiGraphics.centeredText(this.font, Component.literal(ShaderInventoryService.displayPath(this.entry.path())), this.width / 2, 14, 0xFFFFFFFF);
         guiGraphics.centeredText(this.font, Component.literal(sourceSummary()), this.width / 2, 34, 0xFFA8C2D8);

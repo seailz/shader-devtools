@@ -121,8 +121,8 @@ public final class ShaderInventoryScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics) {
+        super.extractRenderState(guiGraphics);
 
         List<BrowserEntry> entries = allEntries();
         int totalPages = totalPages(entries.size());

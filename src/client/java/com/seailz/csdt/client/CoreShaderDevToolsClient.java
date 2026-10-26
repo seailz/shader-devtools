@@ -5,6 +5,7 @@ import com.mojang.logging.LogUtils;
 import com.seailz.csdt.client.screen.ShaderDevToolsScreen;
 import com.seailz.csdt.client.service.ForcedPostEffectService;
 import com.seailz.csdt.client.service.McpControlServerService;
+import com.seailz.csdt.client.service.PipelineInventoryService;
 import com.seailz.csdt.client.service.ShaderReloadService;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
@@ -102,6 +103,12 @@ public class CoreShaderDevToolsClient implements ClientModInitializer {
         if (guiSmokeMenuRendered) {
             guiSmokeRenderedTicks++;
             if (guiSmokeRenderedTicks >= GUI_SMOKE_SETTLE_TICKS) {
+                var pipelines = PipelineInventoryService.listPipelines();
+                if (pipelines.isEmpty()) {
+                    throw new IllegalStateException("GUI smoke test failed: pipeline inventory is empty");
+                }
+                pipelines.forEach(PipelineInventoryService::describe);
+                LOGGER.info("GUI smoke test inspected {} static and cached dynamic pipelines.", pipelines.size());
                 LOGGER.info("GUI smoke test passed: Shader DevTools menu rendered for {} client ticks.", GUI_SMOKE_SETTLE_TICKS);
                 client.stop();
             }

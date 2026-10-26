@@ -76,10 +76,10 @@ public final class PipelineDetailScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphicsExtractor guiGraphics) {
         guiGraphics.fill(0, 0, this.width, this.height, 0xB010141A);
         renderPanels(guiGraphics);
-        super.extractRenderState(guiGraphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(guiGraphics);
 
         String location = shortId(this.pipeline.location());
         guiGraphics.centeredText(this.font, Component.literal(location), this.width / 2, 16, 0xFFFFFFFF);
