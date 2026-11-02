@@ -158,19 +158,19 @@ public final class UniformInspectorService {
     }
 
     private static void decodeGlobals(List<ValueLine> lines, byte[] bytes) {
-        if (bytes.length < 56) {
+        if (bytes.length < 48) {
             return;
         }
         lines.add(ValueLine.header("Globals"));
         lines.add(ValueLine.value("globals.camera-block", "Camera block", intAt(bytes, 0) + ", " + intAt(bytes, 4) + ", " + intAt(bytes, 8)));
         lines.add(ValueLine.value("globals.camera-local", "Camera local", floatAt(bytes, 16) + ", " + floatAt(bytes, 20) + ", " + floatAt(bytes, 24)));
         lines.add(ValueLine.value("globals.screen", "Screen", floatAt(bytes, 32) + " x " + floatAt(bytes, 36)));
-        lines.add(ValueLine.value("globals.glint-alpha", "Glint alpha", floatAt(bytes, 40)));
-        float gameTimeFraction = floatAtRaw(bytes, 44);
+        lines.add(ValueLine.value("globals.glint-alpha", "Glint alpha", floatAt(bytes, 12)));
+        float gameTimeFraction = floatAtRaw(bytes, 28);
         lines.add(ValueLine.value("globals.gametime-fraction", "GameTime fraction", formatFloat(gameTimeFraction)));
         lines.add(ValueLine.value("globals.gametime-ticks", "GameTime ticks", formatFloat(gameTimeFraction * 24000.0F)));
-        lines.add(ValueLine.value("globals.menu-blur-radius", "Menu blur radius", String.valueOf(intAt(bytes, 48))));
-        lines.add(ValueLine.value("globals.use-rgss", "Use RGSS", String.valueOf(intAt(bytes, 52))));
+        lines.add(ValueLine.value("globals.menu-blur-radius", "Menu blur radius", String.valueOf(intAt(bytes, 40))));
+        lines.add(ValueLine.value("globals.use-rgss", "Use RGSS", String.valueOf(intAt(bytes, 44))));
     }
 
     private static void decodeFog(List<ValueLine> lines, byte[] bytes) {

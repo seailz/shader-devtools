@@ -1,6 +1,7 @@
 package com.seailz.csdt.client.service;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.Identifier;
@@ -23,7 +24,7 @@ public final class AtlasInspectionService {
         minecraft.execute(() -> {
             try {
                 TextureAtlas atlas = minecraft.getAtlasManager()
-                        .getAtlasOrThrow(TextureAtlas.LOCATION_BLOCKS);
+                        .getAtlasOrThrow(AtlasIds.BLOCKS);
 
                 Identifier id = Identifier.parse(spriteId);
                 TextureAtlasSprite sprite = atlas.getSprite(id);

@@ -6,6 +6,7 @@ import com.mojang.blaze3d.pipeline.ShaderSource;
 import com.mojang.renderpearl.api.device.GpuDevice;
 import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
 import com.mojang.renderpearl.api.pipeline.CompiledRenderPipeline;
+import com.mojang.renderpearl.api.pipeline.RenderPassLayout;
 import com.mojang.renderpearl.api.pipeline.SpvModule;
 import com.seailz.csdt.client.service.ShaderDebugPipelineService;
 import org.spongepowered.asm.mixin.Final;
@@ -28,6 +29,7 @@ public abstract class PipelineBuilderMixin {
     @Inject(method = "generateBackendCreateInfo", at = @At("HEAD"))
     private void csdt$beginShaderDebugPipeline(
             RenderPipeline sourcePipeline,
+            RenderPassLayout.Subpass subpass,
             ShaderSource shaderSource,
             CallbackInfoReturnable<CompiledRenderPipeline.CreateInfo> cir
     ) {
@@ -81,6 +83,7 @@ public abstract class PipelineBuilderMixin {
     @Inject(method = "generateBackendCreateInfo", at = @At("RETURN"))
     private void csdt$finishShaderDebugPipeline(
             RenderPipeline sourcePipeline,
+            RenderPassLayout.Subpass subpass,
             ShaderSource shaderSource,
             CallbackInfoReturnable<CompiledRenderPipeline.CreateInfo> cir
     ) {

@@ -2,6 +2,7 @@ package com.seailz.csdt.client.service;
 
 import com.mojang.renderpearl.api.pipeline.BindGroupLayout;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.pipeline.PipelineCache;
 import com.mojang.renderpearl.api.pipeline.ShaderType;
 import com.mojang.renderpearl.api.pipeline.UniformType;
 import net.minecraft.client.renderer.pipeline.RenderPipelines;
@@ -17,7 +18,7 @@ public final class PipelineInventoryService {
     }
 
     public static List<PipelineEntry> listPipelines() {
-        return Stream.concat(RenderPipelines.staticPipelinesToPrecompile().stream(),
+        return Stream.concat(RenderPipelines.staticPipelinesToPrecompile().stream().map(PipelineCache.Key::pipeline),
                         RenderPipelinesAccessor.csdt$getDynamicPipelines().values().stream())
                 .distinct()
                 .sorted(Comparator.comparing(pipeline -> pipeline.getLocation().toString()))
