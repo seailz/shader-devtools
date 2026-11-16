@@ -140,6 +140,7 @@ public final class UniformInspectorService {
             case "Globals" -> decodeGlobals(lines, bytes);
             case "Fog" -> decodeFog(lines, bytes);
             case "DynamicTransforms" -> decodeDynamicTransforms(lines, bytes);
+            case "TerrainUniform" -> decodeTerrainUniform(lines, bytes);
             case "ChunkSection" -> decodeChunkSection(lines, bytes);
             default -> {
             }
@@ -179,32 +180,41 @@ public final class UniformInspectorService {
         }
         lines.add(ValueLine.header("Fog"));
         lines.add(ValueLine.value("fog.color", "Color", floatAt(bytes, 0) + ", " + floatAt(bytes, 4) + ", " + floatAt(bytes, 8) + ", " + floatAt(bytes, 12)));
-        lines.add(ValueLine.value("fog.environmental", "Environmental", floatAt(bytes, 16) + " -> " + floatAt(bytes, 24)));
-        lines.add(ValueLine.value("fog.render-distance", "Render distance", floatAt(bytes, 20) + " -> " + floatAt(bytes, 28)));
+        lines.add(ValueLine.value("fog.environmental", "Environmental", floatAt(bytes, 16) + " -> " + floatAt(bytes, 20)));
+        lines.add(ValueLine.value("fog.render-distance", "Render distance", floatAt(bytes, 24) + " -> " + floatAt(bytes, 28)));
         lines.add(ValueLine.value("fog.sky-end", "Sky end", floatAt(bytes, 32)));
         lines.add(ValueLine.value("fog.cloud-end", "Cloud end", floatAt(bytes, 36)));
     }
 
     private static void decodeDynamicTransforms(List<ValueLine> lines, byte[] bytes) {
-        if (bytes.length < 160) {
+        if (bytes.length < 156) {
             return;
         }
         lines.add(ValueLine.header("DynamicTransforms"));
         decodeMatrix(lines, "ModelView", bytes, 0);
-        lines.add(ValueLine.value("dynamic-transforms.color-modulator", "Color modulator", floatAt(bytes, 64) + ", " + floatAt(bytes, 68) + ", " + floatAt(bytes, 72) + ", " + floatAt(bytes, 76)));
-        lines.add(ValueLine.value("dynamic-transforms.model-offset", "Model offset", floatAt(bytes, 80) + ", " + floatAt(bytes, 84) + ", " + floatAt(bytes, 88)));
-        decodeMatrix(lines, "Texture matrix", bytes, 96);
+        decodeMatrix(lines, "Texture matrix", bytes, 64);
+        lines.add(ValueLine.value("dynamic-transforms.color-modulator", "Color modulator", floatAt(bytes, 128) + ", " + floatAt(bytes, 132) + ", " + floatAt(bytes, 136) + ", " + floatAt(bytes, 140)));
+        lines.add(ValueLine.value("dynamic-transforms.model-offset", "Model offset", floatAt(bytes, 144) + ", " + floatAt(bytes, 148) + ", " + floatAt(bytes, 152)));
     }
 
     private static void decodeChunkSection(List<ValueLine> lines, byte[] bytes) {
-        if (bytes.length < 96) {
+        if (bytes.length < 24) {
             return;
         }
         lines.add(ValueLine.header("ChunkSection"));
+        lines.add(ValueLine.value("chunk-section.section", "Section", intAt(bytes, 0) + ", " + intAt(bytes, 4) + ", " + intAt(bytes, 8)));
+        lines.add(ValueLine.value("chunk-section.visibility", "Visibility", floatAt(bytes, 12)));
+        lines.add(ValueLine.value("chunk-section.vertex-buffer-offset", "Vertex buffer offset", String.valueOf(intAt(bytes, 16))));
+        lines.add(ValueLine.value("chunk-section.baked-quad-offset", "Baked quad buffer offset", String.valueOf(intAt(bytes, 20))));
+    }
+
+    private static void decodeTerrainUniform(List<ValueLine> lines, byte[] bytes) {
+        if (bytes.length < 72) {
+            return;
+        }
+        lines.add(ValueLine.header("TerrainUniform"));
         decodeMatrix(lines, "ModelView", bytes, 0);
-        lines.add(ValueLine.value("chunk-section.visibility", "Visibility", floatAt(bytes, 64)));
-        lines.add(ValueLine.value("chunk-section.texture-atlas", "Texture atlas", intAt(bytes, 72) + " x " + intAt(bytes, 76)));
-        lines.add(ValueLine.value("chunk-section.section", "Section", intAt(bytes, 80) + ", " + intAt(bytes, 84) + ", " + intAt(bytes, 88)));
+        lines.add(ValueLine.value("terrain-uniform.texture-atlas", "Texture atlas", intAt(bytes, 64) + " x " + intAt(bytes, 68)));
     }
 
     private static void decodeMatrix(List<ValueLine> lines, String label, byte[] bytes, int offset) {

@@ -18,7 +18,7 @@ public final class PipelineInventoryService {
     }
 
     public static List<PipelineEntry> listPipelines() {
-        return Stream.concat(RenderPipelines.staticPipelinesToPrecompile().stream().map(PipelineCache.Key::pipeline),
+        return Stream.concat(RenderPipelines.staticPipelinesToPrecompile().map(PipelineCache.Key::pipeline),
                         RenderPipelinesAccessor.csdt$getDynamicPipelines().values().stream())
                 .distinct()
                 .sorted(Comparator.comparing(pipeline -> pipeline.getLocation().toString()))
